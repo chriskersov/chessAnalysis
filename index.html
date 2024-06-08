@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>analysis</title>
     <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard-1.0.0.min.css"
+    />
   </head>
   <body>
     <div id="main">
+      <div id="left-box"></div>
       <div id="board">
         <div id="row8" class="rows">
-          <div id="a8" class="squares light">
-            <div id="eight-label">8</div>
-          </div>
+          <div id="a8" class="squares light"></div>
           <div id="b8" class="squares dark"></div>
           <div id="c8" class="squares light"></div>
           <div id="d8" class="squares dark"></div>
@@ -22,9 +25,7 @@
           <div id="h8" class="squares dark"></div>
         </div>
         <div id="row7" class="rows">
-          <div id="a7" class="squares dark">
-            <div id="seven-label">7</div>
-          </div>
+          <div id="a7" class="squares dark"></div>
           <div id="b7" class="squares light"></div>
           <div id="c7" class="squares dark"></div>
           <div id="d7" class="squares light"></div>
@@ -34,9 +35,7 @@
           <div id="h7" class="squares light"></div>
         </div>
         <div id="row6" class="rows">
-          <div id="a6" class="squares light">
-            <div id="six-label">6</div>
-          </div>
+          <div id="a6" class="squares light"></div>
           <div id="b6" class="squares dark"></div>
           <div id="c6" class="squares light"></div>
           <div id="d6" class="squares dark"></div>
@@ -46,9 +45,7 @@
           <div id="h6" class="squares dark"></div>
         </div>
         <div id="row5" class="rows">
-          <div id="a5" class="squares dark">
-            <div id="five-label">5</div>
-          </div>
+          <div id="a5" class="squares dark"></div>
           <div id="b5" class="squares light"></div>
           <div id="c5" class="squares dark"></div>
           <div id="d5" class="squares light"></div>
@@ -58,9 +55,7 @@
           <div id="h5" class="squares light"></div>
         </div>
         <div id="row4" class="rows">
-          <div id="a4" class="squares light">
-            <div id="four-label">4</div>
-          </div>
+          <div id="a4" class="squares light"></div>
           <div id="b4" class="squares dark"></div>
           <div id="c4" class="squares light"></div>
           <div id="d4" class="squares dark"></div>
@@ -70,9 +65,7 @@
           <div id="h4" class="squares dark"></div>
         </div>
         <div id="row3" class="rows">
-          <div id="a3" class="squares dark">
-            <div id="three-label">3</div>
-          </div>
+          <div id="a3" class="squares dark"></div>
           <div id="b3" class="squares light"></div>
           <div id="c3" class="squares dark"></div>
           <div id="d3" class="squares light"></div>
@@ -82,9 +75,7 @@
           <div id="h3" class="squares light"></div>
         </div>
         <div id="row2" class="rows">
-          <div id="a2" class="squares light">
-            <div id="two-label">2</div>
-          </div>
+          <div id="a2" class="squares light"></div>
           <div id="b2" class="squares dark"></div>
           <div id="c2" class="squares light"></div>
           <div id="d2" class="squares dark"></div>
@@ -94,33 +85,38 @@
           <div id="h2" class="squares dark"></div>
         </div>
         <div id="row1" class="rows">
-          <div id="a1" class="squares dark">
-            <div id="a-label">a</div>
-            <div id="one-label">1</div>
-          </div>
-          <div id="b1" class="squares light">
-            <div id="b-label">b</div>
-          </div>
-          <div id="c1" class="squares dark">
-            <div id="c-label">c</div>
-          </div>
-          <div id="d1" class="squares light">
-            <div id="d-label">d</div>
-          </div>
-          <div id="e1" class="squares dark">
-            <div id="e-label">e</div>
-          </div>
-          <div id="f1" class="squares light">
-            <div id="f-label">f</div>
-          </div>
-          <div id="g1" class="squares dark">
-            <div id="g-label">g</div>
-          </div>
-          <div id="h1" class="squares light">
-            <div id="h-label">h</div>
-          </div>
+          <div id="a1" class="squares dark"></div>
+          <div id="b1" class="squares light"></div>
+          <div id="c1" class="squares dark"></div>
+          <div id="d1" class="squares light"></div>
+          <div id="e1" class="squares dark"></div>
+          <div id="f1" class="squares light"></div>
+          <div id="g1" class="squares dark"></div>
+          <div id="h1" class="squares light"></div>
         </div>
+      </div>
+      <div id="right-box">
+        <div id="enter-PGN">
+          <textarea id="PGN" placeholder="PGN"></textarea>
+          <button id="submit">analyse</button>
+        </div>
+        <div id="moves">moves</div>
       </div>
     </div>
   </body>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.11.0/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard-1.0.0.min.js"></script>
+  <script src="script.js"></script>
+
+  <!-- 
+  chess.js is a JavaScript library that provides functions to work with chess games. It can:
+
+	•	Validate and parse chess moves.
+	•	Generate legal moves for a given board position.
+	•	Maintain the game state (including history of moves).
+	•	Detect game-end conditions like checkmate, stalemate, draw by insufficient material, etc.
+	•	Export and import board positions using FEN (Forsyth-Edwards Notation).
+	•	Import and export game history using PGN (Portable Game Notation). 
+    -->
 </html>
