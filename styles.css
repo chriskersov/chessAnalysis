@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+#main{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    background-color: rgb(42, 42, 42);
+}
+
+#board{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+}
+
+.squares{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 12vmin;
+    height: 12vmin;
+}
+
+.light{
+    background-color: rgb(221, 205, 249);
+}
+
+.dark{
+    background-color: rgb(167, 132, 250);
+}
+
+.rows{
+    display: flex;
+    flex-direction: row;
+}
+
+#h1{
+    position: relative;
+    border-bottom-right-radius: 1vmin;
+}
+
+#a8{
+    position: relative;
+    border-top-left-radius: 1vmin;
+}
+
+#h8{
+    border-top-right-radius: 1vmin;
+}
+
+#a1{
+    position: relative;
+    border-bottom-left-radius: 1vmin;
+}
+
+#b1, #c1, #d1, #e1, #f1, #g1{
+    position: relative;
+}
+
+#a2, #a3, #a4, #a5, #a6, #a7{
+    position: relative;
+}
+
+#a-label, #b-label, #c-label, #d-label, #e-label, #f-label, #g-label, #h-label{
+    font-size: 2vmin;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 25%;
+    height: 25%;
+}
+
+#one-label, #two-label, #three-label, #four-label, #five-label, #six-label, #seven-label, #eight-label{
+    font-size: 2vmin;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 25%;
+    height: 25%;
+}
