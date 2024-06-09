@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-
     const dropArea = document.getElementById('main');
     const board = document.getElementById('board');
     const overlay = document.getElementById('overlay');
@@ -16,9 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
     }
 
+    // Check if the drag event is from a chess piece or the board
+    function isChessBoardDrag(e) {
+        return e.target.closest('#board') !== null;
+    }
+
     // Handle dragenter and dragover to show overlay and blur main
     ['dragenter', 'dragover'].forEach(eventName => {
         document.addEventListener(eventName, (e) => {
+            if (isChessBoardDrag(e)) return;
             dragCounter++;
             overlay.style.display = 'flex';
             board.classList.add('blur');
@@ -27,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle dragleave to hide overlay and remove blur when leaving the window
     document.addEventListener('dragleave', (e) => {
+        if (isChessBoardDrag(e)) return;
         dragCounter--;
         if (e.relatedTarget === null || dragCounter === 0) {
             overlay.style.display = 'none';
@@ -37,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle drop to hide overlay, remove blur, and process the file
     document.addEventListener('drop', (e) => {
+        if (isChessBoardDrag(e)) return;
         dragCounter = 0;
         overlay.style.display = 'none';
         board.classList.remove('blur');
