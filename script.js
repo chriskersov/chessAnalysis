@@ -69,20 +69,99 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    //---------------------------------------------------------------------------------------------------
+
     const chess = new Chess(); // Initialize a new Chess game
+
+    let currentMoveIndex = 0;
+    let moves = [];
+
+    const initialFen = chess.fen(); 
+    updateBoard(initialFen); // Update the board with the initial position
   
     document.getElementById('submit').addEventListener('click', () => {
-      const pgn = document.getElementById('PGN').value; // Get PGN input
-      const loaded = chess.load_pgn(pgn); // Load PGN into chess.js
-  
-      if (!loaded) {
-        alert('Invalid PGN');
-        return;
-      }
-  
-      const fen = chess.fen(); // Get the FEN representation of the current position
-      updateBoard(fen); // Update the board with the new position
+        const pgn = document.getElementById('PGN').value; // Get PGN input
+        const loaded = chess.load_pgn(pgn); // Load PGN into chess.js
+
+        if (!loaded) {
+          alert('Invalid PGN');
+          return;
+        }
+
+        moves = chess.history({ verbose: true });
+        currentMoveIndex = moves.length; // Set the index to the end of the game
+        const fen = chess.fen(); // Get the FEN representation of the current position
+        updateBoard(fen); // Update the board with the new position
     });
+
+    document.getElementById('start-button').addEventListener('click', startPosition);
+    document.getElementById('end-button').addEventListener('click', endPosition);
+    document.getElementById('next-button').addEventListener('click', nextPosition); 
+    document.getElementById('previous-button').addEventListener('click', previousPosition); 
+
+    document.addEventListener('keydown', (event) => {
+
+        if (event.key === 'ArrowLeft') {
+
+            previousPosition();
+
+        } if (event.key === 'ArrowRight') {
+
+            nextPosition();
+
+        }
+
+    });
+
+    function startPosition() {
+
+        currentMoveIndex = 0; // Reset the move index to 0
+        chess.reset(); // Reset the chess game
+        const initialFen = chess.fen(); // Get the FEN for the initial position
+        updateBoard(initialFen); // Update the board with the initial position
+
+    }
+
+    function endPosition() {
+
+        const pgn = document.getElementById('PGN').value; // Get PGN input
+        chess.load_pgn(pgn); 
+        const finalFen = chess.fen(); // Get the FEN representation of the current position
+        updateBoard(finalFen); // Update the board with the new position
+        currentMoveIndex = moves.length; // Set the index to the end of the game
+
+    }
+
+    function previousPosition() {
+
+        if (currentMoveIndex > 0) {
+            currentMoveIndex--;
+            chess.reset();
+            for (let i = 0; i < currentMoveIndex; i++) {
+              chess.move(moves[i]);
+            }
+            const fen = chess.fen(); // Get the FEN after undoing the move
+            // document.getElementById('PGN').value = chess.pgn(); // Update the PGN in the textarea
+            updateBoard(fen); // Update the board with the new position
+          } else {
+            startPosition();
+          }
+
+    }
+
+    function nextPosition() {
+
+        if (currentMoveIndex < moves.length) {
+            chess.move(moves[currentMoveIndex]);
+            currentMoveIndex++;
+            const fen = chess.fen(); // Get the FEN after making the move
+            // document.getElementById('pgn').value = chess.pgn(); // Update the PGN in the textarea
+            updateBoard(fen); // Update the board with the new position
+          } else {
+            endPosition();
+          }
+          
+    }
   
     function updateBoard(fen) {
       const positions = fen.split(' ')[0]; // Extract board position from FEN

@@ -9,6 +9,10 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard-1.0.0.min.css"
     />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="main">
@@ -97,12 +101,32 @@
       </div>
       <div id="right-box">
         <div id="enter-PGN">
-          <textarea id="PGN" placeholder="PGN"></textarea>
-          <button id="submit">
-            <img id="submit-image" src="images/right-arrow.png" alt="" />
-          </button>
+          <div id="enter-title-area">
+            <div id="enter-title">enter PGN to analyse</div>
+          </div>
+          <div id="enter-area">
+            <textarea id="PGN" placeholder="PGN"></textarea>
+            <button id="submit">
+              <img id="submit-image" src="images/right-arrow.png" alt="" />
+            </button>
+          </div>
         </div>
-        <div id="moves">moves lol</div>
+        <div id="moves">
+          <div id="button-wrapper">
+            <button id="start-button" class="arrow-buttons">
+              <i class="material-icons">first_page</i>
+            </button>
+            <button id="previous-button" class="arrow-buttons">
+              <i class="material-icons">navigate_before</i>
+            </button>
+            <button id="next-button" class="arrow-buttons">
+              <i class="material-icons">navigate_next</i>
+            </button>
+            <button id="end-button" class="arrow-buttons">
+              <i class="material-icons">last_page</i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
     <div id="overlay">

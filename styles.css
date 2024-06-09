@@ -149,14 +149,42 @@ html, body {
     height: 100%;
 }
 
-#enter-PGN{
+#enter-title-area{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 50%;
+}
+
+#enter-title{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 3.3vmin;
+    background-color: rgb(221, 205, 249);
+    border-radius: 0.3vmin;
+    margin: 0 5vmin;
+}
+
+#enter-area{
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 15%;
-    margin: 1vmin;
+    height: 50%;
+}
+
+#enter-PGN{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 12vmin;
+    margin: 2vmin 1vmin 0 1vmin;
 }
 
 #PGN{
@@ -166,16 +194,17 @@ html, body {
     justify-content: center;
     align-items: center;
     padding: 0.5vmin 1vmin 0.5vmin 1vmin;
+    margin: 0 0 0 5vmin;
     background-color: rgb(190, 190, 190);
     border: none;
     height: 2.4vmin;
-    width: 60%;
+    width: 90%;
     border-radius: 0.3vmin;
     overflow: hidden;
 }
 
 #PGN:focus {
-    outline: 2px solid rgb(167, 132, 250);
+    outline: 2px solid rgb(221, 205, 249);
 }
 
 #submit{
@@ -185,7 +214,7 @@ html, body {
     justify-content: center;
     align-items: center;
     padding: 0.5vmin 1vmin 0.5vmin 1vmin;
-    margin: 1vmin;
+    margin: 1vmin 5vmin 1vmin 1vmin;
     background-color: rgb(151, 207, 157);
     border: none;
     width: 10%;
@@ -196,7 +225,7 @@ html, body {
 }
 
 #submit:hover {
-    background-color: rgb(167, 132, 250);
+    background-color: rgb(221, 205, 249);
 }
 
 #submit-image {
@@ -210,5 +239,9 @@ html, body {
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 85%;
+    flex-grow: 1;
+}
+
+.arrow-buttons{
+    cursor: pointer;
 }
