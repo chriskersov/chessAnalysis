@@ -1,4 +1,67 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    const dropArea = document.getElementById('main');
+    const board = document.getElementById('board');
+    const overlay = document.getElementById('overlay');
+    const pgnTextarea = document.getElementById('PGN');
+    let dragCounter = 0;
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        document.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Handle dragenter and dragover to show overlay and blur main
+    ['dragenter', 'dragover'].forEach(eventName => {
+        document.addEventListener(eventName, (e) => {
+            dragCounter++;
+            overlay.style.display = 'flex';
+            board.classList.add('blur');
+        }, false);
+    });
+
+    // Handle dragleave to hide overlay and remove blur when leaving the window
+    document.addEventListener('dragleave', (e) => {
+        dragCounter--;
+        if (e.relatedTarget === null || dragCounter === 0) {
+            overlay.style.display = 'none';
+            board.classList.remove('blur');
+            dragCounter = 0; // Reset counter to prevent multiple dragleave issues
+        }
+    }, false);
+
+    // Handle drop to hide overlay, remove blur, and process the file
+    document.addEventListener('drop', (e) => {
+        dragCounter = 0;
+        overlay.style.display = 'none';
+        board.classList.remove('blur');
+        handleDrop(e);
+    }, false);
+
+    // Handle dropped files
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length) {
+            const file = files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const pgn = event.target.result;
+                pgnTextarea.value = pgn;
+                pgnTextarea.dispatchEvent(new Event('input')); // Adjust the textarea height
+            };
+
+            reader.readAsText(file);
+        }
+    }
+
     const chess = new Chess(); // Initialize a new Chess game
   
     document.getElementById('submit').addEventListener('click', () => {
