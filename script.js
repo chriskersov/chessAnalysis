@@ -71,6 +71,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //---------------------------------------------------------------------------------------------------
 
+    document.getElementById('upload-pgn').addEventListener('click', () => {
+        document.getElementById('file-input').click();
+      });
+
+    document.getElementById('file-input').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            document.getElementById('PGN').value = e.target.result;
+          };
+          reader.readAsText(file);
+        }
+    });
+
+    //---------------------------------------------------------------------------------------------------
+
     const chess = new Chess(); // Initialize a new Chess game
 
     let currentMoveIndex = 0;

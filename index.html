@@ -106,9 +106,17 @@
           </div>
           <div id="enter-area">
             <textarea id="PGN" placeholder="PGN"></textarea>
-            <button id="submit">
-              <img id="submit-image" src="images/right-arrow.png" alt="" />
-            </button>
+            <div id="pgn-button-wrapper">
+              <button id="upload-pgn">
+                <input type="file" id="file-input" style="display: none" />
+                choose file
+                <i class="material-icons">file_upload</i>
+              </button>
+              <button id="submit">
+                load PGN
+                <i class="material-icons">file_download</i>
+              </button>
+            </div>
           </div>
         </div>
         <div id="moves">
