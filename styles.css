@@ -47,7 +47,8 @@ html, body {
     margin: 1vmin;
     position: relative;
     transition: 0.7s ease; /* Smooth transition for blur effect */
-}
+    border-radius: 1vmin;
+    box-shadow: 0 2px 1.5vmin rgba(0, 0, 0, 0.5);}
 
 .squares{
     display: flex;
@@ -134,10 +135,15 @@ html, body {
 #right-box{
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     flex: 1;
-    height: 100%;
+    height: calc(100% - 4vmin);
+    /* border   : 1px solid rgb(55, 55, 55); */
+    margin: 0 2vmin;
+    border-radius: 0.7vmin;
+    background-color: rgb(42, 42, 42);  
+    /* box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5); */
 }
 
 #left-box{
@@ -146,14 +152,19 @@ html, body {
     justify-content: center;
     align-items: center;
     flex: 1;
-    height: 100%;
+    height: calc(100% - 4vmin);
+    /* border   : 1px solid rgb(55, 55, 55); */
+    margin: 0 2vmin;
+    border-radius: 0.7vmin;
+    background-color: rgb(54, 54, 54);  
+    box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
 }
 
 #enter-title-area{
     display: flex;
     justify-content: center;
     align-items: center;
-    width: calc(100% - 9.55vmin); /* Subtract left and right margins */
+    width: calc(100% - 3vmin); /* Subtract left and right margins */
 
     height: 20%;
 }
@@ -184,8 +195,12 @@ html, body {
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 24vmin;
-    margin: 2vmin 1vmin 0 1vmin;
+    height: 22vmin;
+    margin: 0 2vmin;
+    border-radius: 0.7vmin;
+    padding: 1vmin 0;
+    box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
+    background-color: rgb(54, 54, 54);  
 }
 
 #PGN{
@@ -195,7 +210,7 @@ html, body {
     background-color: rgb(190, 190, 190);
     border: none;
     height: 100%;
-    width: calc(100% - 10vmin); /* Subtract left and right margins */
+    width: calc(100% - 15vmin); /* Subtract left and right margins */
     border-radius: 0.3vmin;
     overflow: auto;
 }
@@ -218,7 +233,7 @@ html, body {
     align-items: center;
     background-color: rgb(151, 207, 157);
     border: none;
-    width: calc(50% - 5.25vmin); /* Subtract left and right margins */
+    width: calc(50% - 7.75vmin); /* Subtract left and right margins */
     margin: 1.5vmin 0 1vmin 0.5vmin ;
     height: 3.4vmin;
     border-radius: 0.3vmin;
@@ -228,6 +243,7 @@ html, body {
 
 #submit:hover {
     background-color: rgb(221, 205, 249);
+    transform: scale(1.05);
 }
 
 #submit-image {
@@ -242,7 +258,7 @@ html, body {
     align-items: center;
     background-color: rgb(190, 190, 190);
     border: none;
-    width: calc(50% - 5.25vmin); /* Subtract left and right margins */
+    width: calc(50% - 7.75vmin); /* Subtract left and right margins */
     margin: 1.5vmin 0.5vmin 1vmin 0 ;
     height: 3.4vmin;
     border-radius: 0.3vmin;
@@ -252,17 +268,60 @@ html, body {
 
 #upload-pgn:hover {
     background-color: rgb(221, 205, 249);
+    transform: scale(1.05);
+}
+
+#direction-buttons{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    /* flex-grow: 1; */
+    box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
+    background-color: rgb(54, 54, 54);  
+    border-radius: 0.7vmin;
+    height: 6vmin;
 }
 
 #moves{
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: 2.5vmin 0;
+    width: 100%;
+    flex-grow: 1;
+    box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
+    background-color: rgb(54, 54, 54);  
+    border-radius: 0.7vmin;
+    /* height: 6vmin;  */
+}
+
+#button-wrapper{
+    display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
-    flex-grow: 1;
+    height: 100%;
 }
 
 .arrow-buttons{
     cursor: pointer;
+    margin: 0 2vmin;
+    border-radius: 0.3vmin;
+    border: none;
+    background-color: rgb(54, 54, 54);  
+    font-size: 3vmin ;
+    /* transform: scale(1.5); */
+}
+
+.arrow-material-icons{
+    color: rgb(221, 205, 249);
+    font-size: 4vmin !important;
+    transition: 0.3s ease;
+}
+
+.arrow-material-icons:hover{
+    transform: scale(1.25);
 }
