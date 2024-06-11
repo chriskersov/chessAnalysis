@@ -140,7 +140,7 @@ html, body {
     flex: 1;
     height: calc(100% - 4vmin);
     /* border   : 1px solid rgb(55, 55, 55); */
-    margin: 0 2vmin;
+    margin: 0 2vmin 0 1vmin;
     border-radius: 0.7vmin;
     background-color: rgb(42, 42, 42);  
     /* box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5); */
@@ -158,6 +158,21 @@ html, body {
     border-radius: 0.7vmin;
     background-color: rgb(54, 54, 54);  
     box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
+}
+
+#eval-bar{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* flex: 1; */
+    height: calc(100% - 4vmin);
+    /* border   : 1px solid rgb(55, 55, 55); */
+    margin: 0 1vmin 0 0;
+    border-radius: 0.7vmin;
+    background-color: rgb(54, 54, 54);  
+    box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
+    width: 2vmin;
 }
 
 #enter-title-area{
@@ -210,7 +225,7 @@ html, body {
     background-color: rgb(190, 190, 190);
     border: none;
     height: 100%;
-    width: calc(100% - 15vmin); /* Subtract left and right margins */
+    width: calc(100% - 4vmin); /* Subtract left and right margins */
     border-radius: 0.3vmin;
     overflow: auto;
 }
@@ -233,7 +248,7 @@ html, body {
     align-items: center;
     background-color: rgb(151, 207, 157);
     border: none;
-    width: calc(50% - 7.75vmin); /* Subtract left and right margins */
+    width: calc(50% - 2vmin); /* Subtract left and right margins */
     margin: 1.5vmin 0 1vmin 0.5vmin ;
     height: 3.4vmin;
     border-radius: 0.3vmin;
@@ -258,7 +273,7 @@ html, body {
     align-items: center;
     background-color: rgb(190, 190, 190);
     border: none;
-    width: calc(50% - 7.75vmin); /* Subtract left and right margins */
+    width: calc(50% - 2vmin); /* Subtract left and right margins */
     margin: 1.5vmin 0.5vmin 1vmin 0 ;
     height: 3.4vmin;
     border-radius: 0.3vmin;
@@ -289,7 +304,7 @@ html, body {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    margin: 2.5vmin 0;
+    margin: 2vmin 0;
     width: 100%;
     flex-grow: 1;
     box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
