@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "stockfish": "^16.0.0"
+    "stockfish": "^16.0.0",
+    "stockfish-nnue.wasm": "file:../stockfish-nnue-wasm-v2/src/emscripten/public"
   }
 }

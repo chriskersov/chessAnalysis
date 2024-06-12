@@ -5,7 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const pgnTextarea = document.getElementById('PGN');
     let dragCounter = 0;
 
-    // Prevent default drag behaviors
+    const stockfish = new Worker('scripts/stockfish.js');
+    stockfish.postMessage('uci');
+
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         document.addEventListener(eventName, preventDefaults, false);
     });
@@ -15,12 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
     }
 
-    // Check if the drag event is from a chess piece or the board
     function isChessBoardDrag(e) {
         return e.target.closest('#board') !== null;
     }
 
-    // Handle dragenter and dragover to show overlay and blur main
     ['dragenter', 'dragover'].forEach(eventName => {
         document.addEventListener(eventName, (e) => {
             if (isChessBoardDrag(e)) return;
@@ -30,18 +30,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }, false);
     });
 
-    // Handle dragleave to hide overlay and remove blur when leaving the window
     document.addEventListener('dragleave', (e) => {
         if (isChessBoardDrag(e)) return;
         dragCounter--;
         if (e.relatedTarget === null || dragCounter === 0) {
             overlay.style.display = 'none';
             board.classList.remove('blur');
-            dragCounter = 0; // Reset counter to prevent multiple dragleave issues
+            dragCounter = 0; 
         }
     }, false);
 
-    // Handle drop to hide overlay, remove blur, and process the file
     document.addEventListener('drop', (e) => {
         if (isChessBoardDrag(e)) return;
         dragCounter = 0;
@@ -50,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
         handleDrop(e);
     }, false);
 
-    // Handle dropped files
     function handleDrop(e) {
         const dt = e.dataTransfer;
         const files = dt.files;
@@ -62,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onload = function(event) {
                 const pgn = event.target.result;
                 pgnTextarea.value = pgn;
-                pgnTextarea.dispatchEvent(new Event('input')); // Adjust the textarea height
+                pgnTextarea.dispatchEvent(new Event('input')); 
             };
 
             reader.readAsText(file);
@@ -88,17 +85,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //---------------------------------------------------------------------------------------------------
 
-    const chess = new Chess(); // Initialize a new Chess game
-
+    const chess = new Chess(); 
     let currentMoveIndex = 0;
     let moves = [];
 
     const initialFen = chess.fen(); 
-    updateBoard(initialFen); // Update the board with the initial position
+    updateBoard(initialFen); 
   
     document.getElementById('submit').addEventListener('click', () => {
-        const pgn = document.getElementById('PGN').value; // Get PGN input
-        const loaded = chess.load_pgn(pgn); // Load PGN into chess.js
+        const pgn = document.getElementById('PGN').value; 
+        const loaded = chess.load_pgn(pgn); 
 
         if (!loaded) {
           alert('Invalid PGN');
@@ -106,10 +102,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         moves = chess.history({ verbose: true });
-        currentMoveIndex = moves.length; // Set the index to the end of the game
-        const fen = chess.fen(); // Get the FEN representation of the current position
-        updateBoard(fen); // Update the board with the new position
+        currentMoveIndex = moves.length; 
+        const fen = chess.fen(); 
+        updateBoard(fen); 
+
+        const currentFen = chess.fen();
+        evaluatePosition(currentFen);
+
     });
+
+  function evaluatePosition(fen) {
+      stockfish.postMessage(`position fen ${fen}`);
+      stockfish.postMessage(`go depth 20`);
+  }
+
+  stockfish.onmessage = function(event) {
+      const message = event.data;
+
+
+      if (message.includes('info depth 20')) {
+        const matchCp = message.match(/score cp (-?\d+)/);
+        const matchMate = message.match(/score mate (-?\d+)/);
+
+        if (matchCp) {
+            const evaluation = parseInt(matchCp[1], 10);
+            if (currentMoveIndex % 2 === 0) {
+              console.log(`evaluation: ${currentMoveIndex}`, evaluation / 100); // output the evaluation score in centipawns / 100
+            } else {
+              console.log(`evaluation: ${currentMoveIndex}`, -evaluation / 100);
+            }
+            // updateEvalBar(evaluation); 
+        } else if (matchMate) {
+            const mateIn = parseInt(matchMate[1], 10);
+            console.log(`mate in ${mateIn} moves`); 
+            // updateEvalBar(`Mate in ${mateIn} moves`); 
+        } else {
+            console.log("no valid score found");
+        }
+    }
+
+      // console.log(message); // log all messages for debugging
+  };
 
     document.getElementById('start-button').addEventListener('click', startPosition);
     document.getElementById('end-button').addEventListener('click', endPosition);
@@ -132,20 +165,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startPosition() {
 
-        currentMoveIndex = 0; // Reset the move index to 0
-        chess.reset(); // Reset the chess game
-        const initialFen = chess.fen(); // Get the FEN for the initial position
-        updateBoard(initialFen); // Update the board with the initial position
+        currentMoveIndex = 0; 
+        chess.reset(); 
+        const initialFen = chess.fen(); 
+        updateBoard(initialFen); 
+        evaluatePosition(initialFen); 
 
     }
 
     function endPosition() {
 
-        const pgn = document.getElementById('PGN').value; // Get PGN input
+        const pgn = document.getElementById('PGN').value; 
         chess.load_pgn(pgn); 
-        const finalFen = chess.fen(); // Get the FEN representation of the current position
-        updateBoard(finalFen); // Update the board with the new position
-        currentMoveIndex = moves.length; // Set the index to the end of the game
+        const finalFen = chess.fen(); 
+        updateBoard(finalFen); 
+        currentMoveIndex = moves.length; 
+        evaluatePosition(finalFen); 
 
     }
 
@@ -157,9 +192,9 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < currentMoveIndex; i++) {
               chess.move(moves[i]);
             }
-            const fen = chess.fen(); // Get the FEN after undoing the move
-            // document.getElementById('PGN').value = chess.pgn(); // Update the PGN in the textarea
-            updateBoard(fen); // Update the board with the new position
+            const fen = chess.fen();
+            updateBoard(fen);
+            evaluatePosition(fen); 
           } else {
             startPosition();
           }
@@ -171,9 +206,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentMoveIndex < moves.length) {
             chess.move(moves[currentMoveIndex]);
             currentMoveIndex++;
-            const fen = chess.fen(); // Get the FEN after making the move
-            // document.getElementById('pgn').value = chess.pgn(); // Update the PGN in the textarea
-            updateBoard(fen); // Update the board with the new position
+            const fen = chess.fen(); 
+            updateBoard(fen); 
+            evaluatePosition(fen); 
           } else {
             endPosition();
           }
@@ -181,11 +216,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   
     function updateBoard(fen) {
-      const positions = fen.split(' ')[0]; // Extract board position from FEN
-      const rows = positions.split('/'); // Split into rows
+      const positions = fen.split(' ')[0]; 
+      const rows = positions.split('/'); 
       const board = document.getElementById('board');
   
-      // Clear existing pieces
       document.querySelectorAll('.squares').forEach(square => {
         square.innerHTML = '';
       });
@@ -196,10 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
           if (isNaN(char)) {
             const squareId = `${String.fromCharCode(97 + colIndex)}${8 - rowIndex}`;
             const square = board.querySelector(`#${squareId}`);
-            square.innerHTML = getPieceImage(char); // Set piece image
+            square.innerHTML = getPieceImage(char); 
             colIndex++;
           } else {
-            colIndex += parseInt(char); // Skip empty squares
+            colIndex += parseInt(char); 
           }
         }
       });
@@ -214,4 +248,5 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         return `<img src="images/${pieceName[piece]}.png" alt="${pieceName[piece]}">`;
       }
+
   });
