@@ -163,7 +163,7 @@ html, body {
 #eval-bar{
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: end;
     align-items: center;
     /* flex: 1; */
     height: calc(100% - 4vmin);
@@ -172,7 +172,7 @@ html, body {
     border-radius: 0.7vmin;
     background-color: rgb(54, 54, 54);  
     box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
-    width: 2vmin;
+    width: 3vmin;
 }
 
 #enter-title-area{
@@ -339,4 +339,26 @@ html, body {
 
 .arrow-material-icons:hover{
     transform: scale(1.25);
+}
+
+#moving-eval{
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    height: 50%;
+    width: 100%;
+    background-color: white;
+    border-bottom-left-radius: 0.7vmin;
+    border-bottom-right-radius: 0.7vmin;
+    transition: 1s ease;
+}
+
+#eval-value{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: auto;
+    font-size: 1vmin;
+    padding: 0.5vmin;
 }

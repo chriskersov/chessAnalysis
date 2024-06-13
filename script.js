@@ -113,29 +113,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function evaluatePosition(fen) {
       stockfish.postMessage(`position fen ${fen}`);
-      stockfish.postMessage(`go depth 20`);
+      stockfish.postMessage(`go depth 22`);
   }
 
   stockfish.onmessage = function(event) {
       const message = event.data;
+      console.log(message);
 
-
-      if (message.includes('info depth 20')) {
+      if (message.includes('info depth')) {
         const matchCp = message.match(/score cp (-?\d+)/);
         const matchMate = message.match(/score mate (-?\d+)/);
 
         if (matchCp) {
             const evaluation = parseInt(matchCp[1], 10);
             if (currentMoveIndex % 2 === 0) {
-              console.log(`evaluation: ${currentMoveIndex}`, evaluation / 100); // output the evaluation score in centipawns / 100
+              // console.log(`evaluation: ${currentMoveIndex}`, evaluation / 100); // output the evaluation score in centipawns / 100
+              updateEvalBar((evaluation / 100).toFixed(1)); 
             } else {
-              console.log(`evaluation: ${currentMoveIndex}`, -evaluation / 100);
+              // console.log(`evaluation: ${currentMoveIndex}`, -evaluation / 100);
+              updateEvalBar((-evaluation / 100).toFixed(1)); 
             }
-            // updateEvalBar(evaluation); 
         } else if (matchMate) {
+
+          if (currentMoveIndex % 2 === 0) {
+
             const mateIn = parseInt(matchMate[1], 10);
-            console.log(`mate in ${mateIn} moves`); 
-            // updateEvalBar(`Mate in ${mateIn} moves`); 
+            updateEvalBar(`M${mateIn}`); 
+
+          } else {
+
+            const mateIn = parseInt(matchMate[1], 10);
+            updateEvalBar(`M${-mateIn}`); 
+
+          }
         } else {
             console.log("no valid score found");
         }
@@ -143,6 +153,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // console.log(message); // log all messages for debugging
   };
+
+  function updateEvalBar(evaluation) {
+
+    document.getElementById('moving-eval').style.backgroundColor = 'white'; 
+    const evalValue = document.getElementById('eval-value');
+    let percentage = 0;
+    document.getElementById('moving-eval').style.borderTopLeftRadius = '0';
+    document.getElementById('moving-eval').style.borderTopRightRadius = '0';
+
+    if (currentMoveIndex === 0) {
+
+      evalValue.innerHTML = '0.0';
+      document.getElementById('moving-eval').style.height = '50%';
+
+    } else if (evaluation.includes('M')) {
+
+      const mateIn = parseInt(evaluation.slice(1), 10);
+
+      if (mateIn > 0) {
+
+        document.getElementById('moving-eval').style.height = '100%';
+        document.getElementById('moving-eval').style.borderTopLeftRadius = '0.7vmin';
+        document.getElementById('moving-eval').style.borderTopRightRadius = '0.7vmin';
+
+        evalValue.innerHTML = evaluation;
+      
+      } else {
+
+        document.getElementById('moving-eval').style.backgroundColor = 'rgb(54, 54, 54)'; 
+        evalValue.innerHTML = (`M${-mateIn}`);
+
+      }
+
+    } else {
+
+      if (evaluation > 0 && evaluation <= 1) {
+
+        percentage = (evaluation * 12.5) + 50;
+        document.getElementById('moving-eval').style.height = `${percentage}%`;
+
+      } else if (evaluation < 0 && evaluation >= -1) {
+
+        percentage = 50 - (-evaluation * 12.5);
+        console.log(percentage);
+        document.getElementById('moving-eval').style.height = `${percentage}%`;
+
+      } else if (evaluation > 1 && evaluation <= 4) {
+
+        percentage = (((evaluation - 1) / 3) * 32.5) + 62.5;
+        document.getElementById('moving-eval').style.height = `${percentage}%`;
+
+      } else if (evaluation < -1 && evaluation >= -4) {
+
+        percentage = 37.5 - (((-evaluation - 1) / 3) * 32.5);
+        document.getElementById('moving-eval').style.height = `${percentage}%`;
+
+      } else if (evaluation > 4) {
+
+        document.getElementById('moving-eval').style.height = `95%`;
+
+      } else if (evaluation < -4) {
+
+        document.getElementById('moving-eval').style.height = `5%`;
+
+      }
+
+      evalValue.innerHTML = evaluation;
+
+    }
+
+  }
 
     document.getElementById('start-button').addEventListener('click', startPosition);
     document.getElementById('end-button').addEventListener('click', endPosition);
