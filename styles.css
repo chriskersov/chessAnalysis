@@ -301,7 +301,7 @@ html, body {
 
 #moves{
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     margin: 2vmin 0;
@@ -310,7 +310,7 @@ html, body {
     box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
     background-color: rgb(54, 54, 54);  
     border-radius: 0.7vmin;
-    /* height: 6vmin;  */
+    height: 6vmin; 
 }
 
 #button-wrapper{
@@ -361,4 +361,101 @@ html, body {
     height: auto;
     font-size: 1vmin;
     padding: 0.5vmin;
+    color: black;;
+}
+
+#player-names{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2vmin;
+    height: 10%;
+    width: 90%;
+}
+
+#player-white{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 45%;
+    height: 100%;
+    font-size: 2vmin;
+    color: black;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 0.7vmin;
+}
+
+#player-black{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 45%;
+    height: 100%;
+    font-size: 2vmin;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 0.7vmin;
+}
+
+#vs{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 10%;
+    height: 100%;
+    font-size: 2vmin;
+    color: rgb(221, 205, 249);
+}
+
+#temp{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 20%;
+    width: 100%;
+}
+
+#move-history{
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    height: 70%;
+    width: 100%;
+}
+
+#white-history{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    height: 91%;
+    overflow: auto;
+    margin: 2vmin 2vmin 0 2vmin;
+    flex-wrap: wrap;
+}
+
+#black-history{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    height: 91%;
+    overflow: auto;
+    margin: 2vmin 2vmin 0 2vmin;
+    flex-wrap: wrap;
+}
+
+#white-history::-webkit-scrollbar-track,
+#black-history::-webkit-scrollbar-track {
+    background: #5a5a5a; /* color of the track */
+}
+
+#white-history::-webkit-scrollbar-thumb,
+#black-history::-webkit-scrollbar-thumb {
+    background: #aa5353; /* color of the scroll thumb */
+}
+
+#white-history::-webkit-scrollbar-thumb:hover,
+#black-history::-webkit-scrollbar-thumb:hover {
+    background: #b29696; /* color of the scroll thumb on hover */
 }

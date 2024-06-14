@@ -106,10 +106,86 @@ document.addEventListener('DOMContentLoaded', () => {
         const fen = chess.fen(); 
         updateBoard(fen); 
 
+        const playerWhite = pgn.match(/\[White\s"(.*)"\]/);
+        const playerBlack = pgn.match(/\[Black\s"(.*)"\]/);
+
+        if (playerWhite && playerBlack) {
+
+          function splitName(name) {
+            if (name.length > 16) {
+                const midpoint = Math.ceil(name.length / 2); // Find the midpoint of the string
+                return name.slice(0, midpoint) + '<br>' + name.slice(midpoint); // Insert a line break at the midpoint
+            }
+            return name;
+        }
+        
+        document.getElementById('player-white').innerHTML = splitName(playerWhite[1]);
+        document.getElementById('vs').innerHTML = 'vs';
+        document.getElementById('player-black').innerHTML = splitName(playerBlack[1]);
+
+        }
+
+        showHistory(moves);
+
         const currentFen = chess.fen();
         evaluatePosition(currentFen);
 
     });
+
+  function showHistory() {
+
+    moves = chess.history({ verbose: true });
+
+    currentFen = chess.fen();
+    chess.reset();
+
+    const readableMoves = [];
+
+    moves.forEach((move) => {
+        chess.move({ from: move.from, to: move.to });
+        const history = chess.history({ verbose: true });
+        const lastMove = history[history.length - 1];
+        readableMoves.push(lastMove.san); // Get the algebraic notation
+    });
+
+    let count = 0;  
+    let tempMove = '';
+    let whiteList = [];
+    let blackList = [];
+    
+    for (let i = 0; i < readableMoves.length; i++) {
+
+        if (i % 2 === 0) {
+
+            count++;
+            tempMove = `${count}. ${readableMoves[i]}<br>`;
+            whiteList.push(tempMove);
+
+        } else {
+
+          count++;
+          tempMove = `${count}. ${readableMoves[i]}<br>`;
+          blackList.push(tempMove);
+
+        }
+
+    }
+
+    for (let i = 0; i < whiteList.length; i++) {
+
+        document.getElementById('white-history').innerHTML += whiteList[i];
+
+    }
+
+    for (let i = 0; i < blackList.length; i++) {
+
+      document.getElementById('black-history').innerHTML += blackList[i];
+
+  }
+
+    chess.load(currentFen);
+
+  }
 
   function evaluatePosition(fen) {
       stockfish.postMessage(`position fen ${fen}`);
@@ -149,7 +225,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             console.log("no valid score found");
         }
-    }
+      }  
+
+      if (message.includes('bestmove')) {
+
+          const match = message.match(/bestmove\s(\w+)/);
+          if (match) {
+              const bestMove = match[1];
+              console.log(`best move: ${bestMove}`);
+          }
+      }
 
       // console.log(message); // log all messages for debugging
   };
@@ -157,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateEvalBar(evaluation) {
 
     document.getElementById('moving-eval').style.backgroundColor = 'white'; 
+    document.getElementById('eval-value').style.color = 'black';
     const evalValue = document.getElementById('eval-value');
     let percentage = 0;
     document.getElementById('moving-eval').style.borderTopLeftRadius = '0';
@@ -179,12 +265,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         evalValue.innerHTML = evaluation;
       
-      } else {
+      } else if (mateIn < 0) {
 
         document.getElementById('moving-eval').style.backgroundColor = 'rgb(54, 54, 54)'; 
+        document.getElementById('eval-value').style.color = 'white';
         evalValue.innerHTML = (`M${-mateIn}`);
 
-      }
+      } else if (mateIn === 0) {
+
+        result = pgnTextarea.value.split('Result "')[1].split('"')[0];
+
+        if (result === '1-0') {
+
+          evalValue.innerHTML = 'W';
+          document.getElementById('moving-eval').style.height = '100%';
+          document.getElementById('moving-eval').style.borderTopLeftRadius = '0.7vmin';
+          document.getElementById('moving-eval').style.borderTopRightRadius = '0.7vmin';
+
+        } else if (result === '0-1') { 
+
+          evalValue.innerHTML = 'B';
+          document.getElementById('moving-eval').style.backgroundColor = 'rgb(54, 54, 54)'; 
+          document.getElementById('eval-value').style.color = 'white';
+
+        }
+
+      } 
 
     } else {
 
@@ -318,6 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       });
+
     }
   
     function getPieceImage(piece) {
