@@ -93,6 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateBoard(initialFen); 
   
     document.getElementById('submit').addEventListener('click', () => {
+
+        document.getElementById('move-history-title').innerHTML = 'move history';
+
         const pgn = document.getElementById('PGN').value; 
         const loaded = chess.load_pgn(pgn); 
 
@@ -117,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return name.slice(0, midpoint) + '<br>' + name.slice(midpoint); // Insert a line break at the midpoint
             }
             return name;
-        }
+          }
         
         document.getElementById('player-white').innerHTML = splitName(playerWhite[1]);
         document.getElementById('vs').innerHTML = 'vs';
@@ -158,13 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (i % 2 === 0) {
 
             count++;
-            tempMove = `${count}. ${readableMoves[i]}<br>`;
+            tempMove = `${count}. ${readableMoves[i]}<br><br>`;
             whiteList.push(tempMove);
 
         } else {
 
           count++;
-          tempMove = `${count}. ${readableMoves[i]}<br>`;
+          tempMove = `${count}. ${readableMoves[i]}<br><br>`;
           blackList.push(tempMove);
 
         }
@@ -406,6 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const positions = fen.split(' ')[0]; 
       const rows = positions.split('/'); 
       const board = document.getElementById('board');
+
+
   
       document.querySelectorAll('.squares').forEach(square => {
         square.innerHTML = '';

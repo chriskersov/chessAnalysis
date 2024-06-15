@@ -179,8 +179,7 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: calc(100% - 3vmin); /* Subtract left and right margins */
-
+    width: calc(100% - 5vmin); /* Subtract left and right margins */
     height: 20%;
 }
 
@@ -192,7 +191,7 @@ html, body {
     width: 100%;
     height: 3.3vmin;
     background-color: rgb(221, 205, 249);
-    border-radius: 0.3vmin;
+    border-radius: 0.7vmin;
 }
 
 #enter-area{
@@ -211,7 +210,7 @@ html, body {
     align-items: center;
     width: 100%;
     height: 22vmin;
-    margin: 0 2vmin;
+    margin: 0 3vmin;
     border-radius: 0.7vmin;
     padding: 1vmin 0;
     box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
@@ -221,13 +220,14 @@ html, body {
 #PGN{
     font-size: 2vmin;
     margin: 1vmin 0 0 0;
-    padding: 0.5vmin;
+    padding: 1vmin;
     background-color: rgb(190, 190, 190);
     border: none;
     height: 100%;
-    width: calc(100% - 4vmin); /* Subtract left and right margins */
-    border-radius: 0.3vmin;
+    width: calc(100% - 7vmin); /* Subtract left and right margins */
+    border-radius: 0.7vmin;
     overflow: auto;
+    resize: none;
 }
 
 #PGN:focus {
@@ -248,10 +248,10 @@ html, body {
     align-items: center;
     background-color: rgb(151, 207, 157);
     border: none;
-    width: calc(50% - 2vmin); /* Subtract left and right margins */
+    width: calc(50% - 4vmin); /* Subtract left and right margins */
     margin: 1.5vmin 0 1vmin 0.5vmin ;
     height: 3.4vmin;
-    border-radius: 0.3vmin;
+    border-radius: 0.7vmin;
     cursor: pointer;
     transition: 0.7s ease;
 }
@@ -276,7 +276,7 @@ html, body {
     width: calc(50% - 2vmin); /* Subtract left and right margins */
     margin: 1.5vmin 0.5vmin 1vmin 0 ;
     height: 3.4vmin;
-    border-radius: 0.3vmin;
+    border-radius: 0.7vmin;
     cursor: pointer;
     transition: 0.7s ease;
 }
@@ -381,7 +381,7 @@ html, body {
     height: 100%;
     font-size: 2vmin;
     color: black;
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgb(190, 190, 190);
     border-radius: 0.7vmin;
 }
 
@@ -411,16 +411,41 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 20%;
+    height: 15%;
     width: 100%;
 }
 
 #move-history{
     display: flex;
     justify-content: center;
-    align-items: start;
-    height: 70%;
+    align-items: center;
+    flex-direction: column;
+    height: 75%;
     width: 100%;
+}
+
+#move-history-title{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 90%;
+    height: 17%;
+    background-color: rgb(221, 205, 249);
+    margin:0 0 2vmin 0;
+    border-radius: 0.7vmin;
+    font-size: 2vmin;
+}
+
+#move-history-wrapper{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    width: 90%;
+    height: 83%;
+    margin: 0 0 2vmin 0;
+    background-color: rgb(190, 190, 190);
+    border-radius: 0.7vmin;
 }
 
 #white-history{
@@ -430,7 +455,7 @@ html, body {
     width: 50%;
     height: 91%;
     overflow: auto;
-    margin: 2vmin 2vmin 0 2vmin;
+    margin: 2vmin;
     flex-wrap: wrap;
 }
 
@@ -441,21 +466,29 @@ html, body {
     width: 50%;
     height: 91%;
     overflow: auto;
-    margin: 2vmin 2vmin 0 2vmin;
+    margin: 2vmin;
     flex-wrap: wrap;
 }
 
-#white-history::-webkit-scrollbar-track,
-#black-history::-webkit-scrollbar-track {
-    background: #5a5a5a; /* color of the track */
+#white-history::-webkit-scrollbar,
+#black-history::-webkit-scrollbar,
+#PGN::-webkit-scrollbar {
+    background: rgb(210, 210, 210); /* color of the track */
+    border-radius: 0.7vmin;
+    width: 1.5vmin;
 }
 
 #white-history::-webkit-scrollbar-thumb,
-#black-history::-webkit-scrollbar-thumb {
-    background: #aa5353; /* color of the scroll thumb */
+#black-history::-webkit-scrollbar-thumb, 
+#PGN::-webkit-scrollbar-thumb {
+    background: rgb(190, 190, 190); /* color of the scroll thumb */
+    border-radius: 0.7vmin;
+    border: 0.4vmin solid rgb(210, 210, 210); /* border that matches the track color */
 }
 
 #white-history::-webkit-scrollbar-thumb:hover,
-#black-history::-webkit-scrollbar-thumb:hover {
-    background: #b29696; /* color of the scroll thumb on hover */
+#black-history::-webkit-scrollbar-thumb:hover, 
+#PGN::-webkit-scrollbar-thumb:hover {
+    background: rgb(165, 165, 165); /* color of the scroll thumb */
+    border: 0.4vmin solid rgb(210, 210, 210); /* border that matches the track color */
 }
