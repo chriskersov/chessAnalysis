@@ -381,7 +381,7 @@ html, body {
     height: 100%;
     font-size: 2vmin;
     color: black;
-    background-color: rgb(190, 190, 190);
+    background-color: rgb(255, 255, 255);
     border-radius: 0.7vmin;
 }
 
@@ -393,7 +393,7 @@ html, body {
     height: 100%;
     font-size: 2vmin;
     color: white;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 1);
     border-radius: 0.7vmin;
 }
 
@@ -471,24 +471,35 @@ html, body {
 }
 
 #white-history::-webkit-scrollbar,
-#black-history::-webkit-scrollbar,
-#PGN::-webkit-scrollbar {
+#black-history::-webkit-scrollbar{
     background: rgb(210, 210, 210); /* color of the track */
     border-radius: 0.7vmin;
     width: 1.5vmin;
 }
 
 #white-history::-webkit-scrollbar-thumb,
-#black-history::-webkit-scrollbar-thumb, 
-#PGN::-webkit-scrollbar-thumb {
+#black-history::-webkit-scrollbar-thumb {
     background: rgb(190, 190, 190); /* color of the scroll thumb */
     border-radius: 0.7vmin;
     border: 0.4vmin solid rgb(210, 210, 210); /* border that matches the track color */
 }
 
 #white-history::-webkit-scrollbar-thumb:hover,
-#black-history::-webkit-scrollbar-thumb:hover, 
-#PGN::-webkit-scrollbar-thumb:hover {
+#black-history::-webkit-scrollbar-thumb:hover {
     background: rgb(165, 165, 165); /* color of the scroll thumb */
     border: 0.4vmin solid rgb(210, 210, 210); /* border that matches the track color */
+}
+
+
+
+#PGN::-webkit-scrollbar {
+    display: none;
+}
+
+#PGN::-webkit-scrollbar-thumb{
+    display: none;
+}
+
+#PGN::-webkit-scrollbar-thumb:hover{
+    display: none;
 }

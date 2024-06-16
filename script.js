@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
     document.getElementById('submit').addEventListener('click', () => {
 
-        document.getElementById('move-history-title').innerHTML = 'move history';
+        // document.getElementById('move-history-title').innerHTML = 'move history';
 
         const pgn = document.getElementById('PGN').value; 
         const loaded = chess.load_pgn(pgn); 
@@ -114,19 +114,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (playerWhite && playerBlack) {
 
-          function splitName(name) {
-            if (name.length > 16) {
-                const midpoint = Math.ceil(name.length / 2); // Find the midpoint of the string
-                return name.slice(0, midpoint) + '<br>' + name.slice(midpoint); // Insert a line break at the midpoint
-            }
-            return name;
-          }
-        
-        document.getElementById('player-white').innerHTML = splitName(playerWhite[1]);
-        document.getElementById('vs').innerHTML = 'vs';
-        document.getElementById('player-black').innerHTML = splitName(playerBlack[1]);
+          function adjustFontSize(name, elementId) {
+              const element = document.getElementById(elementId);
+              if (name.length > 19) {
+                  element.style.fontSize = '1.3vmin'; // Adjust the font size as needed
+              } else if (name.length > 17) {
+                  element.style.fontSize = '1.4vmin';
+              } else if (name.length > 15) {
+                  element.style.fontSize = '1.5vmin';
+              } else if (name.length > 13) {
+                  element.style.fontSize = '1.6vmin';
+              }
 
-        }
+              element.innerHTML = name;
+          }
+      
+          adjustFontSize(playerWhite[1], 'player-white');
+          document.getElementById('vs').innerHTML = 'vs';
+          adjustFontSize(playerBlack[1], 'player-black');
+      }
 
         showHistory(moves);
 
@@ -192,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function evaluatePosition(fen) {
       stockfish.postMessage(`position fen ${fen}`);
-      stockfish.postMessage(`go depth 22`);
+      stockfish.postMessage(`go depth 18`);
   }
 
   stockfish.onmessage = function(event) {
