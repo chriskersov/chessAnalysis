@@ -305,30 +305,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (evaluation > 0 && evaluation <= 1) {
 
-        percentage = (evaluation * 12.5) + 50;
+        percentage = (evaluation * 6.25) + 50;
         document.getElementById('moving-eval').style.height = `${percentage}%`;
 
       } else if (evaluation < 0 && evaluation >= -1) {
 
-        percentage = 50 - (-evaluation * 12.5);
+        percentage = 50 - (-evaluation * 6.25);
         console.log(percentage);
         document.getElementById('moving-eval').style.height = `${percentage}%`;
 
       } else if (evaluation > 1 && evaluation <= 4) {
 
-        percentage = (((evaluation - 1) / 3) * 32.5) + 62.5;
+        percentage = (((evaluation - 1) / 4) * 38.75) + 56.25;
         document.getElementById('moving-eval').style.height = `${percentage}%`;
 
       } else if (evaluation < -1 && evaluation >= -4) {
 
-        percentage = 37.5 - (((-evaluation - 1) / 3) * 32.5);
+        percentage = 43.75 - (((-evaluation - 1) / 4) * 38.75);
         document.getElementById('moving-eval').style.height = `${percentage}%`;
 
-      } else if (evaluation > 4) {
+      } else if (evaluation > 5) {
 
         document.getElementById('moving-eval').style.height = `95%`;
 
-      } else if (evaluation < -4) {
+      } else if (evaluation < -5) {
 
         document.getElementById('moving-eval').style.height = `5%`;
 
