@@ -149,15 +149,15 @@ html, body {
 #left-box{
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     flex: 1;
     height: calc(100% - 4vmin);
     /* border   : 1px solid rgb(55, 55, 55); */
-    margin: 0 2vmin;
+    margin: 0 2vmin 0 2vmin;
     border-radius: 0.7vmin;
-    background-color: rgb(54, 54, 54);  
-    box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
+    background-color: rgb(42, 42, 42);  
+    /* box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5); */
 }
 
 #eval-bar{
@@ -369,7 +369,7 @@ html, body {
     justify-content: center;
     align-items: center;
     margin: 2vmin;
-    height: 10%;
+    height: 6vmin;
     width: 90%;
 }
 
@@ -378,7 +378,7 @@ html, body {
     justify-content: center;
     align-items: center;
     width: 45%;
-    height: 100%;
+    height: 5.5vmin;
     font-size: 2vmin;
     color: black;
     background-color: rgb(255, 255, 255);
@@ -390,7 +390,7 @@ html, body {
     justify-content: center;
     align-items: center;
     width: 45%;
-    height: 100%;
+    height: 5.5vmin;
     font-size: 2vmin;
     color: white;
     background-color: rgba(0, 0, 0, 1);
@@ -411,7 +411,7 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 15%;
+    height: 6vmin;
     width: 100%;
 }
 
@@ -429,7 +429,7 @@ html, body {
     justify-content: center;
     align-items: center;
     width: 90%;
-    height: 17%;
+    height: 3.3vmin;
     background-color: rgb(221, 205, 249);
     margin:0 0 2vmin 0;
     border-radius: 0.7vmin;
@@ -502,4 +502,87 @@ html, body {
 
 #PGN::-webkit-scrollbar-thumb:hover{
     display: none;
+}
+
+#player-history-search{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0 0 1vmin 0;
+    width: 100%;
+    /* flex-grow: 1; */
+    box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
+    background-color: rgb(54, 54, 54);  
+    border-radius: 0.7vmin;
+    height: 13vmin; 
+}
+
+#search-history-title{
+    font-size: 2vmin;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: calc(100% - 4vmin);
+    margin: 2vmin 0 0 0;
+    height: 3.3vmin;
+    background-color: rgb(221, 205, 249);
+    border-radius: 0.7vmin;
+}
+
+#player-history{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 1vmin 0 0 0;
+    width: 100%;
+    flex-grow: 1;
+    box-shadow: 0 2px 1vmin rgba(0, 0, 0, 0.5);
+    background-color: rgb(54, 54, 54);  
+    border-radius: 0.7vmin;
+    height: 6vmin; 
+}
+
+#search-wrapper{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: calc(100% - 4vmin);  
+    margin: 2vmin 0 2vmin 0;
+    height: fit-content;
+}
+
+#history-search-bar{
+    width: 93%;
+    font-size: 2vmin;
+    height: 3.3vmin;
+    margin: 0 1vmin 0 0;
+    background-color: rgb(190, 190, 190);
+    border: none;
+    border-radius: 0.7vmin;
+    padding: 0 1vmin;
+}
+
+#history-search-submit{
+    font-size: 2vmin;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(151, 207, 157);
+    border: none;
+    width: 7%; /* Subtract left and right margins */
+    height: 3.3vmin;
+    border-radius: 0.7vmin;
+    cursor: pointer;
+    transition: 0.7s ease;
+}
+
+#history-search-bar:focus {
+    outline: 2px solid rgb(221, 205, 249);
+}
+
+#history-search-submit:hover {
+    background-color: rgb(221, 205, 249);
+    transform: scale(1.05);
 }

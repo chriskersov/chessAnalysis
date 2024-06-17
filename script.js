@@ -157,7 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
         readableMoves.push(lastMove.san); // Get the algebraic notation
     });
 
-    let count = 0;  
+    let countWhite = 0; 
+    let countBlack = 0;
     let tempMove = '';
     let whiteList = [];
     let blackList = [];
@@ -166,19 +167,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (i % 2 === 0) {
 
-            count++;
-            tempMove = `${count}. ${readableMoves[i]}<br><br>`;
+            countWhite++;
+            tempMove = `${countWhite}. ${readableMoves[i]}<br><br>`;
             whiteList.push(tempMove);
 
         } else {
 
-          count++;
-          tempMove = `${count}. ${readableMoves[i]}<br><br>`;
+          countBlack++;
+          tempMove = `${countBlack}. ${readableMoves[i]}<br><br>`;
           blackList.push(tempMove);
 
         }
 
     }
+
+    document.getElementById('white-history').innerHTML = '';
+    document.getElementById('black-history').innerHTML = '';
+
 
     for (let i = 0; i < whiteList.length; i++) {
 

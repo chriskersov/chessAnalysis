@@ -16,7 +16,24 @@
   </head>
   <body>
     <div id="main">
-      <div id="left-box"></div>
+      <div id="left-box">
+        <div id="player-history-search">
+          <div id="search-history-title">
+            enter player name to load game history
+          </div>
+          <div id="search-wrapper">
+            <input
+              id="history-search-bar"
+              type="text"
+              placeholder="player name"
+            />
+            <button id="history-search-submit">
+              <i class="material-icons">search</i>
+            </button>
+          </div>
+        </div>
+        <div id="player-history"></div>
+      </div>
       <div id="eval-bar">
         <div id="moving-eval">
           <div id="eval-value">0.0</div>
