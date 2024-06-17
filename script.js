@@ -5,6 +5,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const pgnTextarea = document.getElementById('PGN');
     let dragCounter = 0;
 
+    let username = 'chriskersov'
+
+    async function fetchGameArchives(username) {
+        const response = await fetch(`https://api.chess.com/pub/player/${username}/games/archives`);
+    
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+    
+        const data = await response.json();
+        let gamesDetails = [];
+    
+        // Fetch details for each game
+        for (const archiveUrl of data.archives) {
+            const archiveResponse = await fetch(archiveUrl);
+            if (!archiveResponse.ok) {
+                throw new Error('Network response was not ok ' + archiveResponse.statusText);
+            }
+    
+            const archiveData = await archiveResponse.json();
+    
+            // Extract the usernames, ratings, and result
+            for (const game of archiveData.games) {
+                const whiteUsername = game.white.username;
+                const whiteRating = game.white.rating;
+                const blackUsername = game.black.username;
+                const blackRating = game.black.rating;
+                const result = game.pgn.split("\n").find(line => line.startsWith('[Result')).split('"')[1];
+                const [result1, result2] = result.split('-');
+                const PGNtoLoad = game.pgn;
+                // const gameUrl = game.url; // Extract the game URL
+                // console.log(gameUrl);
+    
+                // Add the game details to the gamesDetails array
+                gamesDetails.push(`</div>`);
+                gamesDetails.push(`<div class="game-history-result">${result1}<br>${result2}<br><br></div>`);
+                gamesDetails.push(`<div class="game-history-details">${whiteUsername} (${whiteRating})<br>${blackUsername} (${blackRating})<br><br></div>`);
+                gamesDetails.push(`<div class="game-history-wrapper" game-pgn='${PGNtoLoad}'>`);
+              }
+        }
+    
+        // Reverse the gamesDetails array and add it to the player-history-games element
+        gamesDetails.reverse();
+        document.getElementById('player-history-games').innerHTML = gamesDetails.join('');
+    }
+
+    fetchGameArchives(username);
+    
+    document.getElementById('player-history-games').addEventListener('click', async function (event) {
+      const wrapper = event.target.closest('.game-history-wrapper');
+      if (wrapper) {
+          const gamePGN = wrapper.getAttribute('game-pgn');
+  
+          document.getElementById('PGN').value = gamePGN;
+      }
+  });
+
     const stockfish = new Worker('scripts/stockfish.js');
     stockfish.postMessage('uci');
 
@@ -208,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   stockfish.onmessage = function(event) {
       const message = event.data;
-      console.log(message);
+      // console.log(message);
 
       if (message.includes('info depth')) {
         const matchCp = message.match(/score cp (-?\d+)/);
@@ -308,7 +365,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } else {
 
-      if (evaluation > 0 && evaluation <= 1) {
+      console.log(evaluation);
+
+      if (Math.abs(evaluation) < 0.00001) {
+
+        evalValue.innerHTML = '0.0';
+        document.getElementById('moving-eval').style.height = '50%';
+        console.log('evaluation is 0');
+
+      } else if (evaluation > 0 && evaluation <= 1) {
 
         percentage = (evaluation * 6.25) + 50;
         document.getElementById('moving-eval').style.height = `${percentage}%`;
@@ -316,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (evaluation < 0 && evaluation >= -1) {
 
         percentage = 50 - (-evaluation * 6.25);
-        console.log(percentage);
+        // console.log(percentage);
         document.getElementById('moving-eval').style.height = `${percentage}%`;
 
       } else if (evaluation > 1 && evaluation <= 4) {
