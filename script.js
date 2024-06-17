@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
                 // Add the game details to the gamesDetails array
                 gamesDetails.push(`</div>`);
-                gamesDetails.push(`<div class="game-history-result">${result1}<br>${result2}<br><br></div>`);
-                gamesDetails.push(`<div class="game-history-details">${whiteUsername} (${whiteRating})<br>${blackUsername} (${blackRating})<br><br></div>`);
+                gamesDetails.push(`<div class="game-history-result">${result1}<br>${result2}<br></div>`);
+                gamesDetails.push(`<div class="game-history-details">${whiteUsername} (${whiteRating})<br>${blackUsername} (${blackRating})<br></div>`);
                 gamesDetails.push(`<div class="game-history-wrapper" game-pgn='${PGNtoLoad}'>`);
               }
         }
@@ -59,8 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
           const gamePGN = wrapper.getAttribute('game-pgn');
   
           document.getElementById('PGN').value = gamePGN;
+  
+          // Programmatically click the 'submit' button
+          document.getElementById('submit').click();
       }
-  });
+    });
 
     const stockfish = new Worker('scripts/stockfish.js');
     stockfish.postMessage('uci');

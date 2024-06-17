@@ -564,7 +564,7 @@ html, body {
     justify-content: start;
     align-items: center;
     flex-direction: row;
-    width: calc(100% - 12vmin);
+    width: calc(100% - 10vmin);
     height: 100%;
     margin: 1vmin 0 2vmin 0;
     background-color: rgb(190, 190, 190);
@@ -572,7 +572,7 @@ html, body {
     font-size: 2vmin;
     overflow: auto;
     flex-wrap: wrap;
-    padding: 2vmin 2vmin 0 5vmin ;
+    padding: 2vmin 2vmin 0 3vmin ;
 }
 
 #search-wrapper{
@@ -624,6 +624,12 @@ html, body {
     align-items: center;
     width: 100%;
     height: fit-content;
+    padding: 2vmin 1vmin;
+    border-radius: 0.7vmin;
+}
+
+.game-history-wrapper:hover{
+    background-color: rgb(221, 205, 249);
 }
 
 .game-history-details{
