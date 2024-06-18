@@ -8,50 +8,81 @@ document.addEventListener('DOMContentLoaded', () => {
     let username = 'chriskersov'
 
     async function fetchGameArchives(username) {
-        const response = await fetch(`https://api.chess.com/pub/player/${username}/games/archives`);
-    
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-        }
-    
-        const data = await response.json();
-        let gamesDetails = [];
-    
-        // Fetch details for each game
-        for (const archiveUrl of data.archives) {
-            const archiveResponse = await fetch(archiveUrl);
-            if (!archiveResponse.ok) {
-                throw new Error('Network response was not ok ' + archiveResponse.statusText);
-            }
-    
-            const archiveData = await archiveResponse.json();
-    
-            // Extract the usernames, ratings, and result
-            for (const game of archiveData.games) {
-                const whiteUsername = game.white.username;
-                const whiteRating = game.white.rating;
-                const blackUsername = game.black.username;
-                const blackRating = game.black.rating;
-                const result = game.pgn.split("\n").find(line => line.startsWith('[Result')).split('"')[1];
-                const [result1, result2] = result.split('-');
-                const PGNtoLoad = game.pgn;
-                // const gameUrl = game.url; // Extract the game URL
-                // console.log(gameUrl);
-    
-                // Add the game details to the gamesDetails array
-                gamesDetails.push(`</div>`);
-                gamesDetails.push(`<div class="game-history-result">${result1}<br>${result2}<br></div>`);
-                gamesDetails.push(`<div class="game-history-details">${whiteUsername} (${whiteRating})<br>${blackUsername} (${blackRating})<br></div>`);
-                gamesDetails.push(`<div class="game-history-wrapper" game-pgn='${PGNtoLoad}'>`);
-              }
-        }
-    
-        // Reverse the gamesDetails array and add it to the player-history-games element
-        gamesDetails.reverse();
-        document.getElementById('player-history-games').innerHTML = gamesDetails.join('');
-    }
 
-    fetchGameArchives(username);
+      const response = await fetch(`https://api.chess.com/pub/player/${username}/games/archives`);
+  
+      if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+      }
+
+      
+  
+      const data = await response.json();
+      let gamesDetails = [];
+      let gamesCount = 0; // Add a counter for the games
+  
+      // Fetch details for each game
+    for (const archiveUrl of data.archives.reverse()) { // Reverse the archives array
+        const archiveResponse = await fetch(archiveUrl);
+        if (!archiveResponse.ok) {
+            throw new Error('Network response was not ok ' + archiveResponse.statusText);
+        }
+        const archiveData = await archiveResponse.json();
+
+        // Get the first game
+        const firstGame = archiveData.games[0];
+        if (firstGame) {
+            const whiteUsername = firstGame.white.username;
+            const blackUsername = firstGame.black.username;
+
+            // Check which username matches the input username (ignoring case)
+            if (whiteUsername.toLowerCase() === username.toLowerCase()) {
+                // Use the white username to set the title
+                document.getElementById('player-history-title').innerText = `${whiteUsername}'s game history`;
+            } else if (blackUsername.toLowerCase() === username.toLowerCase()) {
+                // Use the black username to set the title
+                document.getElementById('player-history-title').innerText = `${blackUsername}'s game history`;
+            }
+          }
+  
+          // const archiveData = await archiveResponse.json();
+  
+          // Extract the usernames, ratings, and result
+          for (const game of archiveData.games.reverse()) { // Reverse the games array
+              // Break the loop if gamesCount is 100
+              if (gamesCount === 200) {
+                  break;
+              }
+  
+              const whiteUsername = game.white.username;
+              const whiteRating = game.white.rating;
+              const blackUsername = game.black.username;
+              const blackRating = game.black.rating;
+              const result = game.pgn.split("\n").find(line => line.startsWith('[Result')).split('"')[1];
+              const [result1, result2] = result.split('-');
+              const PGNtoLoad = game.pgn;
+  
+              // Add the game details to the gamesDetails array
+              gamesDetails.push(`<div class="game-history-wrapper" game-pgn='${PGNtoLoad}'>`);
+              gamesDetails.push(`<div class="game-history-details">${whiteUsername} (${whiteRating})<br>${blackUsername} (${blackRating})<br></div>`);
+              gamesDetails.push(`<div class="game-history-result">${result1}<br>${result2}<br></div>`);
+              gamesDetails.push(`</div>`);
+  
+              gamesCount++; // Increment the counter
+          }
+  
+          // Break the outer loop if gamesCount is 100
+          if (gamesCount === 200) {
+              break;
+          }
+      }
+  
+      // Reverse the gamesDetails array and add it to the player-history-games element
+      // gamesDetails.reverse();
+      document.getElementById('player-history-games').innerHTML = gamesDetails.join('');
+  }
+  
+  fetchGameArchives(username);
     
     document.getElementById('player-history-games').addEventListener('click', async function (event) {
       const wrapper = event.target.closest('.game-history-wrapper');
@@ -63,6 +94,18 @@ document.addEventListener('DOMContentLoaded', () => {
           // Programmatically click the 'submit' button
           document.getElementById('submit').click();
       }
+    });
+
+    document.getElementById('history-search-submit').addEventListener('click', (event) => {
+
+      searchUsername = document.getElementById('history-search-bar').value;
+      fetchGameArchives(searchUsername);
+
+      if (searchUsername.length > 19) {
+
+        document.getElementById('player-history-title').style.fontSize = '1.8vmin'; // Adjust the font size as needed
+      }
+
     });
 
     const stockfish = new Worker('scripts/stockfish.js');
