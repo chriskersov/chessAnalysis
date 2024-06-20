@@ -227,6 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
                   element.style.fontSize = '1.5vmin';
               } else if (name.length > 13) {
                   element.style.fontSize = '1.6vmin';
+              } else {
+                  element.style.fontSize = '2vmin';
               }
 
               element.innerHTML = name;
