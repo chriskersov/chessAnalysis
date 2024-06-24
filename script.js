@@ -205,6 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //---------------------------------------------------------------------------------------------------
 
+    let soundPlayed = false;  // Flag to track if sound has been played for the current move
+
     const chess = new Chess(); 
     let currentMoveIndex = 0;
     let moves = [];
@@ -339,10 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (matchCp) {
             const evaluation = parseInt(matchCp[1], 10);
             if (currentMoveIndex % 2 === 0) {
-              // console.log(`evaluation: ${currentMoveIndex}`, evaluation / 100); // output the evaluation score in centipawns / 100
               updateEvalBar((evaluation / 100).toFixed(1)); 
             } else {
-              // console.log(`evaluation: ${currentMoveIndex}`, -evaluation / 100);
               updateEvalBar((-evaluation / 100).toFixed(1)); 
             }
         } else if (matchMate) {
@@ -368,11 +368,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const match = message.match(/bestmove\s(\w+)/);
           if (match) {
               const bestMove = match[1];
-              console.log(`best move: ${bestMove}`);
+              // console.log(`best move: ${bestMove}`);
           }
       }
-
-      // console.log(message); // log all messages for debugging
   };
 
   function updateEvalBar(evaluation) {
@@ -430,13 +428,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } else {
 
-      console.log(evaluation);
-
       if (Math.abs(evaluation) < 0.00001) {
 
         evalValue.innerHTML = '0.0';
         document.getElementById('moving-eval').style.height = '50%';
-        console.log('evaluation is 0');
 
       } else if (evaluation > 0 && evaluation <= 1) {
 
@@ -446,7 +441,6 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (evaluation < 0 && evaluation >= -1) {
 
         percentage = 50 - (-evaluation * 6.25);
-        // console.log(percentage);
         document.getElementById('moving-eval').style.height = `${percentage}%`;
 
       } else if (evaluation > 1 && evaluation <= 4) {
@@ -516,43 +510,132 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function previousPosition() {
-
-        if (currentMoveIndex > 0) {
-            currentMoveIndex--;
-            chess.reset();
-            for (let i = 0; i < currentMoveIndex; i++) {
-              chess.move(moves[i]);
-            }
-            const fen = chess.fen();
-            updateBoard(fen);
-            evaluatePosition(fen); 
-          } else {
-            startPosition();
-          }
-
-    }
-
-    function nextPosition() {
-
-        if (currentMoveIndex < moves.length) {
-            chess.move(moves[currentMoveIndex]);
-            currentMoveIndex++;
-            const fen = chess.fen(); 
-            updateBoard(fen); 
-            evaluatePosition(fen); 
-          } else {
-            endPosition();
-          }
-          
-    }
+      if (currentMoveIndex > 0) {
+          const pgn = document.getElementById('PGN').value; 
   
+          currentMoveIndex--;
+          chess.reset();
+          for (let i = 0; i < currentMoveIndex; i++) {
+              nextMove = moves[i];
+              chess.move(nextMove);
+          }
+          const fen = chess.fen();
+          updateBoard(fen);
+  
+          // Ensure the correct move is analyzed
+          const sanMove = moves[currentMoveIndex] ? moves[currentMoveIndex].san : null;
+          if (sanMove) {
+              getNextMoveAndAnalyze(fen, pgn, sanMove);
+          }
+  
+          evaluatePosition(fen); 
+      } else {
+          startPosition();
+      }
+  }
+  
+  function nextPosition() {
+      if (currentMoveIndex < moves.length) {
+          const pgn = document.getElementById('PGN').value; 
+  
+          nextMove = moves[currentMoveIndex];
+          chess.move(nextMove);
+          currentMoveIndex++;
+          const fen = chess.fen(); 
+          updateBoard(fen); 
+  
+          // Ensure the correct move is analyzed
+          const sanMove = moves[currentMoveIndex] ? moves[currentMoveIndex].san : null;
+          if (sanMove) {
+              getNextMoveAndAnalyze(fen, pgn, sanMove);
+          }
+  
+          evaluatePosition(fen); 
+      } else {
+          endPosition();
+      }
+  }
+  
+  function playSound(type) {
+      const sounds = {
+          normal: 'sounds/move-self.mp3',
+          capture: 'sounds/capture.mp3',
+          check: 'sounds/move-check.mp3',
+          checkmate: 'sounds/game-end.mp3',
+          draw: 'sounds/game-draw.mp3'
+      };
+  
+      if (sounds[type]) {
+          const audio = new Audio(sounds[type]);
+          audio.play();
+      }
+  }
+  
+  // Function to analyze the move and play the appropriate sound
+  function analyzeAndPlaySound(previousFen, sanMove) {
+      console.log('Previous FEN:', previousFen);
+      console.log('SAN Move:', sanMove);
+  
+      const validFen = chess.load(previousFen);  // Load the previous position from the FEN string
+  
+      if (!validFen) {
+          console.log('Invalid FEN');
+          return { error: 'Invalid FEN' };
+      }
+  
+      console.log('Valid FEN loaded:', chess.fen());
+  
+      const move = chess.move(sanMove);
+  
+      if (!move) {
+          console.log('Invalid move:', sanMove);
+          return { error: 'Invalid move' };
+      }
+  
+      console.log('Move:', move);
+  
+      let moveType = 'normal';
+  
+      if (chess.in_checkmate()) {
+          moveType = 'checkmate';
+      } else if (chess.in_stalemate() || chess.in_draw() || chess.insufficient_material() || chess.in_threefold_repetition()) {
+          moveType = 'draw';
+      } else if (move.captured) {  // Check if the move results in a capture
+          moveType = 'capture';
+      } else if (chess.in_check()) {
+          moveType = 'check';
+      }
+  
+      playSound(moveType);
+  
+      return {
+          moveType: moveType,
+          fen: chess.fen()
+      };
+  }
+  
+  // Function to get the previous FEN by reverting one move
+  function getPreviousFen(fen, pgn) {
+      chess.load(fen);
+      chess.load_pgn(pgn);
+      chess.undo();
+      return chess.fen();
+  }
+  
+  // Function to analyze the current position and move
+  function getNextMoveAndAnalyze(fen, pgn, sanMove) {
+      return analyzeAndPlaySound(fen, sanMove);
+  }
+
+
     function updateBoard(fen) {
+
+      soundPlayed = false;
+
       const positions = fen.split(' ')[0]; 
       const rows = positions.split('/'); 
       const board = document.getElementById('board');
 
-
-  
       document.querySelectorAll('.squares').forEach(square => {
         square.innerHTML = '';
       });
