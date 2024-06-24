@@ -231,7 +231,7 @@ html, body {
 }
 
 #PGN:focus {
-    outline: 2px solid rgb(221, 205, 249);
+    outline: 2px solid rgb(167, 132, 250);
 }
 
 #pgn-button-wrapper{
@@ -248,7 +248,7 @@ html, body {
     align-items: center;
     background-color: rgb(151, 207, 157);
     border: none;
-    width: calc(50% - 4vmin); /* Subtract left and right margins */
+    width: calc(50% - 3vmin); /* Subtract left and right margins */
     margin: 1.5vmin 0 1vmin 0.5vmin ;
     height: 3.4vmin;
     border-radius: 0.7vmin;
@@ -257,7 +257,7 @@ html, body {
 }
 
 #submit:hover {
-    background-color: rgb(221, 205, 249);
+    background-color: rgb(167, 132, 250);
     transform: scale(1.05);
 }
 
@@ -273,7 +273,7 @@ html, body {
     align-items: center;
     background-color: rgb(190, 190, 190);
     border: none;
-    width: calc(50% - 2vmin); /* Subtract left and right margins */
+    width: calc(50% - 3vmin); /* Subtract left and right margins */
     margin: 1.5vmin 0.5vmin 1vmin 0 ;
     height: 3.4vmin;
     border-radius: 0.7vmin;
@@ -282,7 +282,7 @@ html, body {
 }
 
 #upload-pgn:hover {
-    background-color: rgb(221, 205, 249);
+    background-color: rgb(167, 132, 250);
     transform: scale(1.05);
 }
 
@@ -411,7 +411,7 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 6vmin;
+    height: 20%;
     width: 100%;
 }
 
@@ -420,21 +420,66 @@ html, body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    height: 80%;
+    height: 50vmin;
     width: 100%;
 }
 
-#move-history-title{
+#right-title-wrapper{
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     width: 90%;
     height: 3.3vmin;
-    background-color: rgb(221, 205, 249);
     margin:0 0 2vmin 0;
-    border-radius: 0.7vmin;
     font-size: 2vmin;
 }
+
+#move-history-title{
+    font-size: 2vmin;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-color: rgb(221, 205, 249);
+    border-radius: 0.7vmin;
+    width: calc(50% - 0.6vmin);
+    border: none;
+    cursor: pointer;
+    transition: 0.7s ease;
+}
+
+/* #move-history-title:focus {
+    outline: 2px solid rgb(167, 132, 250);
+} */
+
+#move-history-title:hover {
+    background-color: rgb(167, 132, 250);
+    transform: scale(1.05);
+}
+
+#analysis-title{
+    font-size: 2vmin;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-color: rgb(221, 205, 249);
+    border-radius: 0.7vmin;
+    width: calc(50% - 0.6vmin);
+    border: none;
+    cursor: pointer;
+    transition: 0.7s ease;
+}
+
+/* #analysis-title:focus {
+    outline: 2px solid rgb(167, 132, 250);
+} */
+
+#analysis-title:hover {
+    background-color: rgb(167, 132, 250);
+    transform: scale(1.05);
+}
+
 
 #move-history-wrapper{
     display: flex;
@@ -442,7 +487,7 @@ html, body {
     align-items: center;
     flex-direction: row;
     width: 90%;
-    height: 83%;
+    height: 40vmin;
     margin: 0 0 2vmin 0;
     background-color: rgb(190, 190, 190);
     border-radius: 0.7vmin;
@@ -610,11 +655,11 @@ html, body {
 }
 
 #history-search-bar:focus {
-    outline: 2px solid rgb(221, 205, 249);
+    outline: 2px solid rgb(167, 132, 250);
 }
 
 #history-search-submit:hover {
-    background-color: rgb(221, 205, 249);
+    background-color: rgb(167, 132, 250);
     transform: scale(1.05);
 }
 .game-history-wrapper{

@@ -188,6 +188,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //---------------------------------------------------------------------------------------------------
 
+    document.getElementById('analysis-title').addEventListener('click', () => {
+    
+        document.getElementById('white-history').style.display = 'none';
+        document.getElementById('black-history').style.display = 'none';
+
+    });
+
+    document.getElementById('move-history-title').addEventListener('click', () => {
+    
+      document.getElementById('white-history').style.display = 'flex';
+      document.getElementById('black-history').style.display = 'flex';
+
+  });
+
+
+    //---------------------------------------------------------------------------------------------------
+
     const chess = new Chess(); 
     let currentMoveIndex = 0;
     let moves = [];
