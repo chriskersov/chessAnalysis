@@ -511,108 +511,147 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function previousPosition() {
       if (currentMoveIndex > 0) {
-          const pgn = document.getElementById('PGN').value; 
+          const pgn = document.getElementById('PGN').value;
   
+          // Decrement currentMoveIndex to point to the previous move
           currentMoveIndex--;
+  
+          // Reset the board and play all moves up to the current move
           chess.reset();
           for (let i = 0; i < currentMoveIndex; i++) {
-              nextMove = moves[i];
+              const nextMove = moves[i];
               chess.move(nextMove);
           }
-          const fen = chess.fen();
+  
+          const fen = chess.fen(); // Capture the current FEN
           updateBoard(fen);
+          
+          nextSound();
   
-          // Ensure the correct move is analyzed
-          const sanMove = moves[currentMoveIndex] ? moves[currentMoveIndex].san : null;
-          if (sanMove) {
-              getNextMoveAndAnalyze(fen, pgn, sanMove);
-          }
-  
-          evaluatePosition(fen); 
+          chess.load(fen);
+
+          evaluatePosition(fen);
       } else {
           startPosition();
       }
   }
   
   function nextPosition() {
-      if (currentMoveIndex < moves.length) {
-          const pgn = document.getElementById('PGN').value; 
-  
-          nextMove = moves[currentMoveIndex];
+    if (currentMoveIndex < moves.length) {
+        const pgn = document.getElementById('PGN').value;
+
+        const currentFen = chess.fen();  // Capture the current FEN
+        const currentSanMove = moves[currentMoveIndex] ? moves[currentMoveIndex].san : null;  // Get the SAN of the current move
+
+        nextMove = moves[currentMoveIndex];
+        chess.move(nextMove);
+        currentMoveIndex++;
+        const fen = chess.fen();
+        updateBoard(fen);
+
+        if (currentSanMove) {
+            getNextMoveAndAnalyze(currentFen, pgn, currentSanMove);  // Pass the current FEN and SAN move
+        }
+
+        evaluatePosition(fen);
+    } else {
+        endPosition();
+    }
+}
+
+  function nextSound() {
+
+    const pgn = document.getElementById('PGN').value;
+
+    const currentFen = chess.fen();  // Capture the current FEN
+    const currentSanMove = moves[currentMoveIndex] ? moves[currentMoveIndex].san : null;  // Get the SAN of the current move
+
+    nextMove = moves[currentMoveIndex];
+    chess.move(nextMove);
+    currentMoveIndex++;
+    const fen = chess.fen();
+    if (currentSanMove) {
+        getNextMoveAndAnalyze(currentFen, pgn, currentSanMove);  // Pass the current FEN and SAN move
+    }
+
+    if (currentMoveIndex > 0) {
+      const pgn = document.getElementById('PGN').value;
+
+      // Decrement currentMoveIndex to point to the previous move
+      currentMoveIndex--;
+
+      // Reset the board and play all moves up to the current move
+      chess.reset();
+      for (let i = 0; i < currentMoveIndex; i++) {
+          const nextMove = moves[i];
           chess.move(nextMove);
-          currentMoveIndex++;
-          const fen = chess.fen(); 
-          updateBoard(fen); 
-  
-          // Ensure the correct move is analyzed
-          const sanMove = moves[currentMoveIndex] ? moves[currentMoveIndex].san : null;
-          if (sanMove) {
-              getNextMoveAndAnalyze(fen, pgn, sanMove);
-          }
-  
-          evaluatePosition(fen); 
-      } else {
-          endPosition();
       }
+
+      const fen = chess.fen(); // Capture the current FEN
+      
+      chess.load(fen);
+
+      } else {
+      startPosition();
+      }
+
   }
-  
+
+
+  const sounds = {
+    normal: new Audio('sounds/move-self.mp3'),
+    capture: new Audio('sounds/capture.mp3'),
+    check: new Audio('sounds/move-check.mp3'),
+    checkmate: new Audio('sounds/game-end.mp3'),
+    draw: new Audio('sounds/game-draw.mp3')
+};
+
+  Object.values(sounds).forEach(sound => sound.load());
+
   function playSound(type) {
-      const sounds = {
-          normal: 'sounds/move-self.mp3',
-          capture: 'sounds/capture.mp3',
-          check: 'sounds/move-check.mp3',
-          checkmate: 'sounds/game-end.mp3',
-          draw: 'sounds/game-draw.mp3'
-      };
-  
       if (sounds[type]) {
-          const audio = new Audio(sounds[type]);
-          audio.play();
+          sounds[type].play();
       }
   }
   
   // Function to analyze the move and play the appropriate sound
   function analyzeAndPlaySound(previousFen, sanMove) {
-      console.log('Previous FEN:', previousFen);
-      console.log('SAN Move:', sanMove);
-  
-      const validFen = chess.load(previousFen);  // Load the previous position from the FEN string
-  
-      if (!validFen) {
-          console.log('Invalid FEN');
-          return { error: 'Invalid FEN' };
-      }
-  
-      console.log('Valid FEN loaded:', chess.fen());
-  
-      const move = chess.move(sanMove);
-  
-      if (!move) {
-          console.log('Invalid move:', sanMove);
-          return { error: 'Invalid move' };
-      }
-  
-      console.log('Move:', move);
-  
-      let moveType = 'normal';
-  
-      if (chess.in_checkmate()) {
-          moveType = 'checkmate';
-      } else if (chess.in_stalemate() || chess.in_draw() || chess.insufficient_material() || chess.in_threefold_repetition()) {
-          moveType = 'draw';
-      } else if (move.captured) {  // Check if the move results in a capture
-          moveType = 'capture';
-      } else if (chess.in_check()) {
-          moveType = 'check';
-      }
-  
-      playSound(moveType);
-  
-      return {
-          moveType: moveType,
-          fen: chess.fen()
-      };
-  }
+    console.log('Previous FEN:', previousFen);
+    console.log('SAN Move:', sanMove);
+
+    const validFen = chess.load(previousFen);  // Load the previous position from the FEN string
+
+    if (!validFen) {
+        console.log('Invalid FEN');
+        return { error: 'Invalid FEN' };
+    }
+
+    console.log('Valid FEN loaded:', chess.fen());
+
+    const move = chess.move(sanMove);
+
+    if (!move) {
+        console.log('Invalid move:', sanMove);
+        return { error: 'Invalid move' };
+    }
+
+    console.log('Move:', move);
+
+    let moveType = 'normal';
+
+    if (move.captured) {  // Check if the move results in a capture
+        moveType = 'capture';
+    } else if (chess.in_check()) {
+        moveType = 'check';
+    }
+
+    playSound(moveType);
+
+    return {
+        moveType: moveType,
+        fen: chess.fen()
+    };
+  } 
   
   // Function to get the previous FEN by reverting one move
   function getPreviousFen(fen, pgn) {
@@ -628,33 +667,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-    function updateBoard(fen) {
+  function updateBoard(fen) {
+    soundPlayed = false;
 
-      soundPlayed = false;
+    const positions = fen.split(' ')[0]; 
+    const rows = positions.split('/'); 
+    const board = document.getElementById('board');
 
-      const positions = fen.split(' ')[0]; 
-      const rows = positions.split('/'); 
-      const board = document.getElementById('board');
-
-      document.querySelectorAll('.squares').forEach(square => {
+    document.querySelectorAll('.squares').forEach(square => {
         square.innerHTML = '';
-      });
-  
-      rows.forEach((row, rowIndex) => {
+    });
+
+    rows.forEach((row, rowIndex) => {
         let colIndex = 0;
         for (let char of row) {
-          if (isNaN(char)) {
-            const squareId = `${String.fromCharCode(97 + colIndex)}${8 - rowIndex}`;
-            const square = board.querySelector(`#${squareId}`);
-            square.innerHTML = getPieceImage(char); 
-            colIndex++;
-          } else {
-            colIndex += parseInt(char); 
-          }
+            if (isNaN(char)) {
+                const squareId = `${String.fromCharCode(97 + colIndex)}${8 - rowIndex}`;
+                const square = board.querySelector(`#${squareId}`);
+                square.innerHTML = getPieceImage(char); 
+                colIndex++;
+            } else {
+                colIndex += parseInt(char); 
+            }
         }
-      });
-
-    }
+    });
+  } 
   
     function getPieceImage(piece) {
         const pieceName = {
