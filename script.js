@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  
     const dropArea = document.getElementById('main');
     const board = document.getElementById('board');
     const overlay = document.getElementById('overlay');
@@ -110,6 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const stockfish = new Worker('scripts/stockfish.js');
     stockfish.postMessage('uci');
+
+// ---------------------------------------------------------------------------------------------------
 
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         document.addEventListener(eventName, preventDefaults, false);
@@ -648,18 +651,11 @@ document.addEventListener('DOMContentLoaded', () => {
     playSound(moveType);
 
     return {
-        moveType: moveType,
-        fen: chess.fen()
+        moveType: moveType,             
+        fen: chess.fen()    // Return the FEN after the move              
     };
   } 
   
-  // Function to get the previous FEN by reverting one move
-  function getPreviousFen(fen, pgn) {
-      chess.load(fen);
-      chess.load_pgn(pgn);
-      chess.undo();
-      return chess.fen();
-  }
   
   // Function to analyze the current position and move
   function getNextMoveAndAnalyze(fen, pgn, sanMove) {
