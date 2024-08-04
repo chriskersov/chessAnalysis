@@ -1,214 +1,264 @@
 document.addEventListener('DOMContentLoaded', () => {
-  
-    const dropArea = document.getElementById('main');
-    const board = document.getElementById('board');
-    const overlay = document.getElementById('overlay');
-    const pgnTextarea = document.getElementById('PGN');
-    let dragCounter = 0;
 
-    let username = 'chriskersov'
+  const dropArea = document.getElementById('main');
+  const board = document.getElementById('board');
+  const overlay = document.getElementById('overlay');
+  const pgnTextarea = document.getElementById('PGN');
+  let dragCounter = 0;
 
-    async function fetchGameArchives(username) {
+  // ----------------------------------------------------------------------------------------------------------------------------
 
-      const response = await fetch(`https://api.chess.com/pub/player/${username}/games/archives`);
-  
-      if (!response.ok) {
-          throw new Error('Network response was not ok ' + response.statusText);
+  let username = 'chriskersov'
+
+  async function fetchGameArchives(username) {
+
+    const response = await fetch(`https://api.chess.com/pub/player/${username}/games/archives`); // fetch game archives for given username
+
+    if (!response.ok) {
+
+        throw new Error('Network response was not ok ' + response.statusText); // if the response is not ok then throw an error
+
+    }
+
+    const data = await response.json();
+
+    let gamesDetails = []; 
+    let gamesCount = 0; // counter for the number of games
+
+    for (const archiveUrl of data.archives.reverse()) { // reverse the archives array and loop through it
+
+      const archiveResponse = await fetch(archiveUrl); // fetch using the url
+
+      if (!archiveResponse.ok) {
+
+          throw new Error('Network response was not ok ' + archiveResponse.statusText); // if the response is not ok then throw an error
+
       }
 
-      
-  
-      const data = await response.json();
-      let gamesDetails = [];
-      let gamesCount = 0; // Add a counter for the games
-  
-      // Fetch details for each game
-    for (const archiveUrl of data.archives.reverse()) { // Reverse the archives array
-        const archiveResponse = await fetch(archiveUrl);
-        if (!archiveResponse.ok) {
-            throw new Error('Network response was not ok ' + archiveResponse.statusText);
+      const archiveData = await archiveResponse.json(); // get the json data from the response
+      const firstGame = archiveData.games[0]; // get the first game
+
+      if (firstGame) { // if the first game exists
+
+        const whiteUsername = firstGame.white.username;
+        const blackUsername = firstGame.black.username;
+
+        if (whiteUsername.toLowerCase() === username.toLowerCase()) { // if the white username is the same as the given username
+
+          document.getElementById('player-history-title').innerText = `${whiteUsername}'s game history`; // set the title to the white username so that casing is correct
+
+        } else if (blackUsername.toLowerCase() === username.toLowerCase()) { // if the black username is the same as the given username
+
+          document.getElementById('player-history-title').innerText = `${blackUsername}'s game history`; // set the title to the black username so that casing is correct
+
         }
-        const archiveData = await archiveResponse.json();
 
-        // Get the first game
-        const firstGame = archiveData.games[0];
-        if (firstGame) {
-            const whiteUsername = firstGame.white.username;
-            const blackUsername = firstGame.black.username;
-
-            // Check which username matches the input username (ignoring case)
-            if (whiteUsername.toLowerCase() === username.toLowerCase()) {
-                // Use the white username to set the title
-                document.getElementById('player-history-title').innerText = `${whiteUsername}'s game history`;
-            } else if (blackUsername.toLowerCase() === username.toLowerCase()) {
-                // Use the black username to set the title
-                document.getElementById('player-history-title').innerText = `${blackUsername}'s game history`;
-            }
-          }
-  
-          // const archiveData = await archiveResponse.json();
-  
-          // Extract the usernames, ratings, and result
-          for (const game of archiveData.games.reverse()) { // Reverse the games array
-              // Break the loop if gamesCount is 100
-              if (gamesCount === 200) {
-                  break;
-              }
-  
-              const whiteUsername = game.white.username;
-              const whiteRating = game.white.rating;
-              const blackUsername = game.black.username;
-              const blackRating = game.black.rating;
-              const result = game.pgn.split("\n").find(line => line.startsWith('[Result')).split('"')[1];
-              const [result1, result2] = result.split('-');
-              const PGNtoLoad = game.pgn;
-  
-              // Add the game details to the gamesDetails array
-              gamesDetails.push(`<div class="game-history-wrapper" game-pgn='${PGNtoLoad}'>`);
-              gamesDetails.push(`<div class="game-history-details">${whiteUsername} (${whiteRating})<br>${blackUsername} (${blackRating})<br></div>`);
-              gamesDetails.push(`<div class="game-history-result">${result1}<br>${result2}<br></div>`);
-              gamesDetails.push(`</div>`);
-  
-              gamesCount++; // Increment the counter
-          }
-  
-          // Break the outer loop if gamesCount is 100
-          if (gamesCount === 200) {
-              break;
-          }
       }
   
-      // Reverse the gamesDetails array and add it to the player-history-games element
-      // gamesDetails.reverse();
-      document.getElementById('player-history-games').innerHTML = gamesDetails.join('');
+      for (const game of archiveData.games.reverse()) { // for each game in the reversed games array
+
+        if (gamesCount === 200) { // break the loop if the games count is 200
+
+          break;
+
+        }
+
+        const whiteUsername = game.white.username;
+        const whiteRating = game.white.rating;
+        const blackUsername = game.black.username;
+        const blackRating = game.black.rating;
+        const result = game.pgn.split("\n").find(line => line.startsWith('[Result')).split('"')[1];
+        const [result1, result2] = result.split('-');
+        const PGNtoLoad = game.pgn;
+
+        // add the extracted data to the gamesDetails array
+        gamesDetails.push(`<div class="game-history-wrapper" game-pgn='${PGNtoLoad}'>`);
+        gamesDetails.push(`<div class="game-history-details">${whiteUsername} (${whiteRating})<br>${blackUsername} (${blackRating})<br></div>`);
+        gamesDetails.push(`<div class="game-history-result">${result1}<br>${result2}<br></div>`);
+        gamesDetails.push(`</div>`);
+
+        gamesCount++; // increment the amount of games
+      }
+
+      if (gamesCount === 200) { // break the loop if the games count is 200
+
+        break;
+
+      }
+
+    }
+
+    document.getElementById('player-history-games').innerHTML = gamesDetails.join(''); // set the contents of player-history-games to the gamesDetails array
+
   }
   
-  fetchGameArchives(username);
-    
-    document.getElementById('player-history-games').addEventListener('click', async function (event) {
-      const wrapper = event.target.closest('.game-history-wrapper');
-      if (wrapper) {
-          const gamePGN = wrapper.getAttribute('game-pgn');
+  fetchGameArchives(username); // this shows the game history of a given username on the left of the page
   
-          document.getElementById('PGN').value = gamePGN;
-  
-          // Programmatically click the 'submit' button
-          document.getElementById('submit').click();
-      }
-    });
-
-    document.getElementById('history-search-submit').addEventListener('click', (event) => {
-
-      searchUsername = document.getElementById('history-search-bar').value;
-      fetchGameArchives(searchUsername);
-
-      if (searchUsername.length > 19) {
-
-        document.getElementById('player-history-title').style.fontSize = '1.8vmin'; // Adjust the font size as needed
-      }
-
-    });
-
-    const stockfish = new Worker('scripts/stockfish.js');
-    stockfish.postMessage('uci');
-
-// ---------------------------------------------------------------------------------------------------
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        document.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    function isChessBoardDrag(e) {
-        return e.target.closest('#board') !== null;
-    }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        document.addEventListener(eventName, (e) => {
-            if (isChessBoardDrag(e)) return;
-            dragCounter++;
-            overlay.style.display = 'flex';
-            board.classList.add('blur');
-        }, false);
-    });
-
-    document.addEventListener('dragleave', (e) => {
-        if (isChessBoardDrag(e)) return;
-        dragCounter--;
-        if (e.relatedTarget === null || dragCounter === 0) {
-            overlay.style.display = 'none';
-            board.classList.remove('blur');
-            dragCounter = 0; 
-        }
-    }, false);
-
-    document.addEventListener('drop', (e) => {
-        if (isChessBoardDrag(e)) return;
-        dragCounter = 0;
-        overlay.style.display = 'none';
-        board.classList.remove('blur');
-        handleDrop(e);
-    }, false);
-
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-
-        if (files.length) {
-            const file = files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(event) {
-                const pgn = event.target.result;
-                pgnTextarea.value = pgn;
-                pgnTextarea.dispatchEvent(new Event('input')); 
-            };
-
-            reader.readAsText(file);
-        }
-    }
-
-    //---------------------------------------------------------------------------------------------------
-
-    document.getElementById('upload-pgn').addEventListener('click', () => {
-        document.getElementById('file-input').click();
-      });
-
-    document.getElementById('file-input').addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            document.getElementById('PGN').value = e.target.result;
-          };
-          reader.readAsText(file);
-        }
-    });
-
-    //---------------------------------------------------------------------------------------------------
-
-    document.getElementById('analysis-title').addEventListener('click', () => {
+  // ----------------------------------------------------------------------------------------------------------------------------
     
-        document.getElementById('white-history').style.display = 'none';
-        document.getElementById('black-history').style.display = 'none';
+  document.getElementById('player-history-games').addEventListener('click', async function (event) { // when a game is clicked
 
-    });
+    const wrapper = event.target.closest('.game-history-wrapper'); // get the closest game-history-wrapper element
 
-    document.getElementById('move-history-title').addEventListener('click', () => {
-    
-      document.getElementById('white-history').style.display = 'flex';
-      document.getElementById('black-history').style.display = 'flex';
+    if (wrapper) { // if the wrapper exists
+
+        document.getElementById('PGN').value = wrapper.getAttribute('game-pgn');; // set the PGN textarea to the game's pgn
+        document.getElementById('submit').click(); // click the submit button to load the game
+
+    }
 
   });
 
+  // ----------------------------------------------------------------------------------------------------------------------------
 
-    //---------------------------------------------------------------------------------------------------
+  document.getElementById('history-search-submit').addEventListener('click', (event) => { // when the search button is clicked
 
-    let soundPlayed = false;  // Flag to track if sound has been played for the current move
+    searchUsername = document.getElementById('history-search-bar').value; // get the value of the search bar
+    fetchGameArchives(searchUsername); // run the fetchGameArchives function with the searched username
+    document.getElementById('player-history-title').style.fontSize = '2vmin'; // normal font size
+
+    if (searchUsername.length > 19) { // if the username is longer than 19 characters
+
+      document.getElementById('player-history-title').style.fontSize = '1.8vmin'; // then decrease the font size of the title
+      
+    }
+
+  });
+
+  // ----------------------------------------------------------------------------------------------------------------------------
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => { // for each of these events
+
+      document.addEventListener(eventName, preventDefaults, false); // prevent the default action
+
+  });
+
+  function preventDefaults(e) { // prevent the default action for the given event
+
+      e.preventDefault(); 
+      e.stopPropagation();
+
+  }
+
+  function isChessBoardDrag(e) { // check if the drag is over the chess board
+
+      return e.target.closest('#board') !== null; // return true if the drag is over the chess board
+
+  }
+
+  ['dragenter', 'dragover'].forEach(eventName => { // for each of these events
+
+    document.addEventListener(eventName, (e) => {
+
+        if (isChessBoardDrag(e)) return; // if the drag is over the chess board then return
+
+        dragCounter++;
+        overlay.style.display = 'flex'; 
+        board.classList.add('blur'); // add the blur class to the board to make it blurry
+
+    }, false);
+
+  });
+
+  document.addEventListener('dragleave', (e) => {
+
+      if (isChessBoardDrag(e)) return; // if the drag is over the chess board then return
+
+      dragCounter--;
+
+      if (e.relatedTarget === null || dragCounter === 0) {
+
+          overlay.style.display = 'none';
+          board.classList.remove('blur'); // remove the blur class from the board
+          dragCounter = 0; 
+
+      }
+
+  }, false);
+
+  document.addEventListener('drop', (e) => {
+
+      if (isChessBoardDrag(e)) return; // if the drag is over the chess board then return
+
+      dragCounter = 0;
+      overlay.style.display = 'none';
+      board.classList.remove('blur');
+      handleDrop(e);
+
+  }, false);
+
+  function handleDrop(e) {
+
+    const dt = e.dataTransfer; // get the data transfer object
+    const files = dt.files; // get the files from the data transfer object
+
+    if (files.length) { // if there are files
+
+      const file = files[0]; // get the first file
+      const reader = new FileReader(); // create a new file reader
+
+      reader.onload = function(event) { // when the file is loaded
+
+          const pgn = event.target.result; // get the result of the file
+          pgnTextarea.value = pgn; // set the PGN textarea to the pgn
+          pgnTextarea.dispatchEvent(new Event('input')); 
+
+      };
+
+      reader.readAsText(file);
+
+    }
+
+  }
+
+  // ----------------------------------------------------------------------------------------------------------------------------
+
+    document.getElementById('upload-pgn').addEventListener('click', () => { // when the upload button is clicked
+
+        document.getElementById('file-input').click(); // click the file input
+
+    });
+
+    document.getElementById('file-input').addEventListener('change', (event) => { // 
+
+        const file = event.target.files[0]; // get the first file
+
+        if (file) { // if the file exists
+
+          const reader = new FileReader();
+
+          reader.onload = (e) => { // when the file is loaded
+
+            document.getElementById('PGN').value = e.target.result; // set the PGN textarea to the result of the file
+
+          };
+
+          reader.readAsText(file);
+
+        }
+
+    });
+
+  // ----------------------------------------------------------------------------------------------------------------------------
+
+  document.getElementById('analysis-title').addEventListener('click', () => { // when the analysis button is clicked
+  
+    document.getElementById('white-history').style.display = 'none'; // hide the white move history
+    document.getElementById('black-history').style.display = 'none'; // hide the black move history
+
+  });
+
+  document.getElementById('move-history-title').addEventListener('click', () => { // when the move history button is clicked
+  
+    document.getElementById('white-history').style.display = 'flex'; // show the white move history
+    document.getElementById('black-history').style.display = 'flex'; // show the black move history
+
+  });
+
+  // ----------------------------------------------------------------------------------------------------------------------------
+
+    const stockfish = new Worker('scripts/stockfish.js');
+    stockfish.postMessage('uci');
 
     const chess = new Chess(); 
     let currentMoveIndex = 0;
@@ -216,165 +266,206 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const initialFen = chess.fen(); 
     updateBoard(initialFen); 
+
+  // ----------------------------------------------------------------------------------------------------------------------------
   
-    document.getElementById('submit').addEventListener('click', () => {
+  function adjustFontSize(name, elementId) { // function to adjust the font size of the player names for the submit button
 
-        // document.getElementById('move-history-title').innerHTML = 'move history';
+    const element = document.getElementById(elementId);
 
-        const pgn = document.getElementById('PGN').value; 
-        const loaded = chess.load_pgn(pgn); 
+    // adjust the font size of the player names based on their length
+    if (name.length > 19) {
 
-        if (!loaded) {
-          alert('Invalid PGN');
-          return;
-        }
+        element.style.fontSize = '1.3vmin'; 
 
-        moves = chess.history({ verbose: true });
-        currentMoveIndex = moves.length; 
-        const fen = chess.fen(); 
-        updateBoard(fen); 
+    } else if (name.length > 17) {
 
-        const playerWhite = pgn.match(/\[White\s"(.*)"\]/);
-        const playerBlack = pgn.match(/\[Black\s"(.*)"\]/);
+        element.style.fontSize = '1.4vmin';
 
-        if (playerWhite && playerBlack) {
+    } else if (name.length > 15) {
 
-          function adjustFontSize(name, elementId) {
-              const element = document.getElementById(elementId);
-              if (name.length > 19) {
-                  element.style.fontSize = '1.3vmin'; // Adjust the font size as needed
-              } else if (name.length > 17) {
-                  element.style.fontSize = '1.4vmin';
-              } else if (name.length > 15) {
-                  element.style.fontSize = '1.5vmin';
-              } else if (name.length > 13) {
-                  element.style.fontSize = '1.6vmin';
-              } else {
-                  element.style.fontSize = '2vmin';
-              }
+        element.style.fontSize = '1.5vmin';
 
-              element.innerHTML = name;
-          }
-      
-          adjustFontSize(playerWhite[1], 'player-white');
-          document.getElementById('vs').innerHTML = 'vs';
-          adjustFontSize(playerBlack[1], 'player-black');
-      }
+    } else if (name.length > 13) {
 
-        showHistory(moves);
+        element.style.fontSize = '1.6vmin';
 
-        const currentFen = chess.fen();
-        evaluatePosition(currentFen);
+    } else {
 
-    });
+        element.style.fontSize = '2vmin';
+
+    }
+
+    element.innerHTML = name;
+
+  }
+
+  document.getElementById('submit').addEventListener('click', () => {
+
+    const pgn = document.getElementById('PGN').value; 
+    const loaded = chess.load_pgn(pgn); 
+
+    if (!loaded) { // if the pgn is not loaded
+
+      alert('invalid PGN'); // alert the user that the pgn is invalid
+      return;
+
+    }
+
+    moves = chess.history({ verbose: true }); // get the move history of the game
+    currentMoveIndex = moves.length; // set the current move index to the length of the moves array
+    const fen = chess.fen(); // get the fen of the game
+    updateBoard(fen); // update the board with the fen
+
+    const playerWhite = pgn.match(/\[White\s"(.*)"\]/); // get the white player name
+    const playerBlack = pgn.match(/\[Black\s"(.*)"\]/); // get the black player name
+
+    if (playerWhite && playerBlack) { // if both the player names exist
+  
+      adjustFontSize(playerWhite[1], 'player-white'); // adjust the font size of the player name and display name
+      document.getElementById('vs').innerHTML = 'vs'; // vs
+      adjustFontSize(playerBlack[1], 'player-black'); // adjust the font size of the player name and display name
+
+    }
+
+    showHistory(moves);
+
+    const currentFen = chess.fen();
+    evaluatePosition(currentFen);
+
+  });
+
+  // ----------------------------------------------------------------------------------------------------------------------------
 
   function showHistory() {
 
-    moves = chess.history({ verbose: true });
-
+    moves = chess.history({ verbose: true }); // get the move history of the game
     currentFen = chess.fen();
-    chess.reset();
+    chess.reset(); // reset the board
+    const readableMoves = []; // create an array for the readable moves
 
-    const readableMoves = [];
+    moves.forEach((move) => { // for each move in the moves array
 
-    moves.forEach((move) => {
-        chess.move({ from: move.from, to: move.to });
-        const history = chess.history({ verbose: true });
-        const lastMove = history[history.length - 1];
-        readableMoves.push(lastMove.san); // Get the algebraic notation
+        chess.move({ from: move.from, to: move.to }); // move the piece
+        const history = chess.history({ verbose: true }); // get the move history
+        const lastMove = history[history.length - 1]; // get the last move
+        readableMoves.push(lastMove.san); // add the last move to the readable moves array
+
     });
 
-    let countWhite = 0; 
+    // initialise some variables
+    let countWhite = 0;
     let countBlack = 0;
     let tempMove = '';
     let whiteList = [];
     let blackList = [];
     
-    for (let i = 0; i < readableMoves.length; i++) {
+    for (let i = 0; i < readableMoves.length; i++) { // for each readable move
 
-        if (i % 2 === 0) {
+        if (i % 2 === 0) { // if the index is even
 
             countWhite++;
-            tempMove = `${countWhite}. ${readableMoves[i]}<br><br>`;
+            tempMove = `${countWhite}. ${readableMoves[i]}<br><br>`; // add the move to the white move list
             whiteList.push(tempMove);
 
-        } else {
+        } else { // if the index is odd
 
           countBlack++;
-          tempMove = `${countBlack}. ${readableMoves[i]}<br><br>`;
+          tempMove = `${countBlack}. ${readableMoves[i]}<br><br>`; // add the move to the black move list
           blackList.push(tempMove);
 
         }
 
     }
 
-    document.getElementById('white-history').innerHTML = '';
-    document.getElementById('black-history').innerHTML = '';
+    document.getElementById('white-history').innerHTML = ''; // clear the white move history
+    document.getElementById('black-history').innerHTML = ''; // clear the black move history
 
+    for (let i = 0; i < whiteList.length; i++) { // for each move in the white move list
 
-    for (let i = 0; i < whiteList.length; i++) {
-
-        document.getElementById('white-history').innerHTML += whiteList[i];
+        document.getElementById('white-history').innerHTML += whiteList[i]; // add the move to the white move history
 
     }
 
-    for (let i = 0; i < blackList.length; i++) {
+    for (let i = 0; i < blackList.length; i++) { // for each move in the black move list
 
-      document.getElementById('black-history').innerHTML += blackList[i];
+      document.getElementById('black-history').innerHTML += blackList[i]; // add the move to the black move history
 
-  }
+    }
 
     chess.load(currentFen);
 
   }
 
+  // ----------------------------------------------------------------------------------------------------------------------------
+
   function evaluatePosition(fen) {
-      stockfish.postMessage(`position fen ${fen}`);
-      stockfish.postMessage(`go depth 18`);
+
+      stockfish.postMessage(`position fen ${fen}`); // post the position to the stockfish worker
+      stockfish.postMessage(`go depth 18`); // post the go command to the stockfish worker
+
   }
 
-  stockfish.onmessage = function(event) {
-      const message = event.data;
-      // console.log(message);
+  stockfish.onmessage = function(event) { // when the stockfish worker sends a message
 
-      if (message.includes('info depth')) {
-        const matchCp = message.match(/score cp (-?\d+)/);
-        const matchMate = message.match(/score mate (-?\d+)/);
+    const message = event.data; // get the message from the event data
 
-        if (matchCp) {
-            const evaluation = parseInt(matchCp[1], 10);
-            if (currentMoveIndex % 2 === 0) {
-              updateEvalBar((evaluation / 100).toFixed(1)); 
+    if (message.includes('info depth')) { // if the message includes 'info depth'
+
+      const matchCp = message.match(/score cp (-?\d+)/); // get the score cp - cp = centipawns
+      const matchMate = message.match(/score mate (-?\d+)/); // get the score mate
+
+      if (matchCp) { // if the score cp exists
+
+            const evaluation = parseInt(matchCp[1], 10); // get the evaluation
+
+            if (currentMoveIndex % 2 === 0) { // if the current move index is even
+
+              updateEvalBar((evaluation / 100).toFixed(1)); // update the eval bar
+
             } else {
-              updateEvalBar((-evaluation / 100).toFixed(1)); 
+
+              updateEvalBar((-evaluation / 100).toFixed(1)); // update the eval bar
+
             }
-        } else if (matchMate) {
 
-          if (currentMoveIndex % 2 === 0) {
+      } else if (matchMate) { // if it is a mate
 
-            const mateIn = parseInt(matchMate[1], 10);
-            updateEvalBar(`M${mateIn}`); 
+        if (currentMoveIndex % 2 === 0) { // if the current move index is even
 
-          } else {
+          const mateIn = parseInt(matchMate[1], 10); // get the number of moves to mate
+          updateEvalBar(`M${mateIn}`); // update the eval bar with number of moves to mate
 
-            const mateIn = parseInt(matchMate[1], 10);
-            updateEvalBar(`M${-mateIn}`); 
+        } else { // if the current move index is odd
 
-          }
-        } else {
-            console.log("no valid score found");
+          const mateIn = parseInt(matchMate[1], 10); // get the number of moves to mate
+          updateEvalBar(`M${-mateIn}`); // update the eval bar with number of moves to mate
+
         }
-      }  
 
-      if (message.includes('bestmove')) {
+      } else { // if there is no valid score
 
-          const match = message.match(/bestmove\s(\w+)/);
-          if (match) {
-              const bestMove = match[1];
-              // console.log(`best move: ${bestMove}`);
-          }
+        console.log("no valid score found");
+
       }
+
+    }  
+
+    if (message.includes('bestmove')) { // this is for late
+
+        const match = message.match(/bestmove\s(\w+)/);
+
+        if (match) {
+
+            const bestMove = match[1];
+
+        }
+
+    }
+
   };
+
+  // ----------------------------------------------------------------------------------------------------------------------------
 
   function updateEvalBar(evaluation) {
 
