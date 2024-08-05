@@ -257,15 +257,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ----------------------------------------------------------------------------------------------------------------------------
 
-    const stockfish = new Worker('scripts/stockfish.js');
-    stockfish.postMessage('uci');
+  const stockfish = new Worker('scripts/stockfish.js');
+  stockfish.postMessage('uci');
 
-    const chess = new Chess(); 
-    let currentMoveIndex = 0;
-    let moves = [];
+  const chess = new Chess(); 
+  let currentMoveIndex = 0;
+  let moves = [];
 
-    const initialFen = chess.fen(); 
-    updateBoard(initialFen); 
+  const initialFen = chess.fen(); 
+  updateBoard(initialFen); 
 
   // ----------------------------------------------------------------------------------------------------------------------------
   
@@ -469,23 +469,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateEvalBar(evaluation) {
 
-    document.getElementById('moving-eval').style.backgroundColor = 'white'; 
-    document.getElementById('eval-value').style.color = 'black';
-    const evalValue = document.getElementById('eval-value');
+    document.getElementById('moving-eval').style.backgroundColor = 'white'; // set moving part of bar to white
+    document.getElementById('eval-value').style.color = 'black'; // set back of eval bar to black
+    const evalValue = document.getElementById('eval-value'); // get the eval
     let percentage = 0;
-    document.getElementById('moving-eval').style.borderTopLeftRadius = '0';
+    document.getElementById('moving-eval').style.borderTopLeftRadius = '0'; 
     document.getElementById('moving-eval').style.borderTopRightRadius = '0';
 
-    if (currentMoveIndex === 0) {
+    if (currentMoveIndex === 0) { // if its the first move
 
-      evalValue.innerHTML = '0.0';
-      document.getElementById('moving-eval').style.height = '50%';
+      evalValue.innerHTML = '0.0'; // eval is 0.0
+      document.getElementById('moving-eval').style.height = '50%'; // eval is even
 
-    } else if (evaluation.includes('M')) {
+    } else if (evaluation.includes('M')) { // if there is a mate
 
-      const mateIn = parseInt(evaluation.slice(1), 10);
+      const mateIn = parseInt(evaluation.slice(1), 10); // get the number of moves to mate
 
-      if (mateIn > 0) {
+      if (mateIn > 0) { // if the number of moves to mate is greater than 0 then its mate for white
 
         document.getElementById('moving-eval').style.height = '100%';
         document.getElementById('moving-eval').style.borderTopLeftRadius = '0.7vmin';
@@ -493,24 +493,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         evalValue.innerHTML = evaluation;
       
-      } else if (mateIn < 0) {
+      } else if (mateIn < 0) { // if the number of moves to mate is less than 0 then its mate for black
 
         document.getElementById('moving-eval').style.backgroundColor = 'rgb(54, 54, 54)'; 
         document.getElementById('eval-value').style.color = 'white';
         evalValue.innerHTML = (`M${-mateIn}`);
 
-      } else if (mateIn === 0) {
+      } else if (mateIn === 0) { // if the number of moves to mate is 0
 
         result = pgnTextarea.value.split('Result "')[1].split('"')[0];
 
-        if (result === '1-0') {
+        if (result === '1-0') { // if white won
 
           evalValue.innerHTML = 'W';
           document.getElementById('moving-eval').style.height = '100%';
           document.getElementById('moving-eval').style.borderTopLeftRadius = '0.7vmin';
           document.getElementById('moving-eval').style.borderTopRightRadius = '0.7vmin';
 
-        } else if (result === '0-1') { 
+        } else if (result === '0-1') { // if black won
 
           evalValue.innerHTML = 'B';
           document.getElementById('moving-eval').style.backgroundColor = 'rgb(54, 54, 54)'; 
@@ -520,9 +520,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       } 
 
-    } else {
+    } else { // if the eval is in a certain range then move the bar in a certain way
 
-      if (Math.abs(evaluation) < 0.00001) {
+      if (Math.abs(evaluation) < 0.00001) { // if the evaluation is less than 0.00001 so basically 0 then its even
 
         evalValue.innerHTML = '0.0';
         document.getElementById('moving-eval').style.height = '50%';
@@ -563,231 +563,304 @@ document.addEventListener('DOMContentLoaded', () => {
 
   }
 
-    document.getElementById('start-button').addEventListener('click', startPosition);
-    document.getElementById('end-button').addEventListener('click', endPosition);
-    document.getElementById('next-button').addEventListener('click', nextPosition); 
-    document.getElementById('previous-button').addEventListener('click', previousPosition); 
+  // ----------------------------------------------------------------------------------------------------------------------------
 
-    document.addEventListener('keydown', (event) => {
+  document.getElementById('start-button').addEventListener('click', startPosition);
+  document.getElementById('end-button').addEventListener('click', endPosition);
+  document.getElementById('next-button').addEventListener('click', nextPosition); 
+  document.getElementById('previous-button').addEventListener('click', previousPosition); 
 
-        if (event.key === 'ArrowLeft') {
+  document.addEventListener('keydown', (event) => { // when a key is pressed
 
-            previousPosition();
+      if (event.key === 'ArrowLeft') { // if the key is the left arrow key
 
-        } if (event.key === 'ArrowRight') {
+          previousPosition(); // call previous position function
 
-            nextPosition();
+      } if (event.key === 'ArrowRight') { // if the key is the right arrow key
 
-        }
+          nextPosition(); // call next position function
 
-    });
-
-    function startPosition() {
-
-        currentMoveIndex = 0; 
-        chess.reset(); 
-        const initialFen = chess.fen(); 
-        updateBoard(initialFen); 
-        evaluatePosition(initialFen); 
-
-    }
-
-    function endPosition() {
-
-        const pgn = document.getElementById('PGN').value; 
-        chess.load_pgn(pgn); 
-        const finalFen = chess.fen(); 
-        updateBoard(finalFen); 
-        currentMoveIndex = moves.length; 
-        evaluatePosition(finalFen); 
-
-    }
-
-    function previousPosition() {
-      if (currentMoveIndex > 0) {
-          const pgn = document.getElementById('PGN').value;
-  
-          // Decrement currentMoveIndex to point to the previous move
-          currentMoveIndex--;
-  
-          // Reset the board and play all moves up to the current move
-          chess.reset();
-          for (let i = 0; i < currentMoveIndex; i++) {
-              const nextMove = moves[i];
-              chess.move(nextMove);
-          }
-  
-          const fen = chess.fen(); // Capture the current FEN
-          updateBoard(fen);
-          
-          nextSound();
-  
-          chess.load(fen);
-
-          evaluatePosition(fen);
-      } else {
-          startPosition();
       }
+
+  });
+
+  // ----------------------------------------------------------------------------------------------------------------------------
+
+  function startPosition() {
+
+      currentMoveIndex = 0; // reset the current move index
+      chess.reset(); // reset the board
+      const initialFen = chess.fen(); // get the fen of the board
+      updateBoard(initialFen); // update the board with the fen
+      evaluatePosition(initialFen); // evaluate the position
+
   }
+
+  // ----------------------------------------------------------------------------------------------------------------------------
+
+  function endPosition() {
+
+      const pgn = document.getElementById('PGN').value;  // get the pgn from the textarea
+      chess.load_pgn(pgn); // load the pgn
+      const finalFen = chess.fen(); // get the fen of the final position
+      updateBoard(finalFen); // update the board with the final position
+      currentMoveIndex = moves.length; // set the current move index to the length of the moves array
+      evaluatePosition(finalFen); // evaluate the final position
+
+  }
+
+  // ----------------------------------------------------------------------------------------------------------------------------
+
+  function previousPosition() {
+
+    if (currentMoveIndex > 0) { // if the current move index is greater than 0
+
+        const pgn = document.getElementById('PGN').value; // get the pgn from the textarea
+        currentMoveIndex--; // decrement the current move index
+        chess.reset(); // reset the board
+
+        for (let i = 0; i < currentMoveIndex; i++) { // for each move in the moves array
+
+            const nextMove = moves[i]; // get the next move
+            chess.move(nextMove); // move the piece
+
+        } // reset the board and play all moves up to the current move
+
+        const fen = chess.fen(); // get the fen of the current position
+        updateBoard(fen); // update the board with the fen
+        nextSound(); // play the next sound
+        chess.load(fen); // load the fen
+        evaluatePosition(fen); // evaluate the position
+
+    } else {
+
+        startPosition(); // go back to the start position
+
+    }
+
+  } 
+
+  // ----------------------------------------------------------------------------------------------------------------------------
   
   function nextPosition() {
-    if (currentMoveIndex < moves.length) {
-        const pgn = document.getElementById('PGN').value;
 
-        const currentFen = chess.fen();  // Capture the current FEN
-        const currentSanMove = moves[currentMoveIndex] ? moves[currentMoveIndex].san : null;  // Get the SAN of the current move
+    if (currentMoveIndex < moves.length) { // if the current move index is less than the length of the moves array
 
-        nextMove = moves[currentMoveIndex];
-        chess.move(nextMove);
-        currentMoveIndex++;
-        const fen = chess.fen();
-        updateBoard(fen);
+        const pgn = document.getElementById('PGN').value; // get the pgn from the textarea
+        const currentFen = chess.fen();  // get the current fen
+        let currentSanMove;
+        
+        if (moves[currentMoveIndex]) { // if the current move index exists
 
-        if (currentSanMove) {
-            getNextMoveAndAnalyze(currentFen, pgn, currentSanMove);  // Pass the current FEN and SAN move
+          currentSanMove = moves[currentMoveIndex].san; // get the current move as a san move
+
+        } else { // if the current move index does not exist
+
+          currentSanMove = null; // set the current san move to null
+
         }
 
-        evaluatePosition(fen);
-    } else {
-        endPosition();
+        nextMove = moves[currentMoveIndex]; // get the next move
+        chess.move(nextMove); // move the piece
+        currentMoveIndex++; // increment the current move index
+        const fen = chess.fen(); // get the fen of the current position
+        updateBoard(fen); //  update the board with the fen
+
+        if (currentSanMove) { // if the current san move exists
+
+            analyzeAndPlaySound(currentFen, currentSanMove);  // this is for the sound
+
+        }
+
+        evaluatePosition(fen); // evaluate the position
+
+    } else { // if the current move index is greater than the length of the moves array
+
+        endPosition(); // go to the end position
+
     }
-}
 
-  function nextSound() {
+  }
 
-    const pgn = document.getElementById('PGN').value;
+  // ----------------------------------------------------------------------------------------------------------------------------
 
-    const currentFen = chess.fen();  // Capture the current FEN
-    const currentSanMove = moves[currentMoveIndex] ? moves[currentMoveIndex].san : null;  // Get the SAN of the current move
+  function nextSound() { // this ended being the fix for everything sound related
 
-    nextMove = moves[currentMoveIndex];
-    chess.move(nextMove);
-    currentMoveIndex++;
-    const fen = chess.fen();
-    if (currentSanMove) {
-        getNextMoveAndAnalyze(currentFen, pgn, currentSanMove);  // Pass the current FEN and SAN move
+    const pgn = document.getElementById('PGN').value; // get the pgn from the textarea
+    const currentFen = chess.fen(); // get the current fen
+    let currentSanMove;
+        
+    if (moves[currentMoveIndex]) { // if the current move index exists
+
+      currentSanMove = moves[currentMoveIndex].san; // get the current move as a san move
+
+    } else { // if the current move index does not exist
+
+      currentSanMove = null; // set the current san move to null
+
     }
 
-    if (currentMoveIndex > 0) {
-      const pgn = document.getElementById('PGN').value;
+    nextMove = moves[currentMoveIndex]; // get the next move
+    chess.move(nextMove); // move the piece
+    currentMoveIndex++; //  increment the current move index
+    const fen = chess.fen(); // get the fen of the current position
 
-      // Decrement currentMoveIndex to point to the previous move
-      currentMoveIndex--;
+    if (currentSanMove) { // if the current san move exists
 
-      // Reset the board and play all moves up to the current move
-      chess.reset();
-      for (let i = 0; i < currentMoveIndex; i++) {
-          const nextMove = moves[i];
-          chess.move(nextMove);
-      }
+        analyzeAndPlaySound(currentFen, currentSanMove);  // this is for sound
 
-      const fen = chess.fen(); // Capture the current FEN
-      
-      chess.load(fen);
+    }
 
-      } else {
-      startPosition();
+    if (currentMoveIndex > 0) { // if the current move index is greater than 0
+
+      const pgn = document.getElementById('PGN').value; // get the pgn from the textarea
+      currentMoveIndex--; // decrement the current move index
+      chess.reset(); // reset the board
+
+      for (let i = 0; i < currentMoveIndex; i++) { // for each move in the moves array
+
+          const nextMove = moves[i]; // get the next move
+          chess.move(nextMove); // move the piece
+
+      } // reset the board and play all moves up to the current move
+
+      const fen = chess.fen(); // get the fen of the current position
+      chess.load(fen); // load the fen
+
+      } else { // if the current move index is less than or equal to 0
+
+        startPosition(); // go back to the start position
+
       }
 
   }
 
+  // ----------------------------------------------------------------------------------------------------------------------------
 
-  const sounds = {
+  const sounds = { // object containing all the sounds
+
     normal: new Audio('sounds/move-self.mp3'),
     capture: new Audio('sounds/capture.mp3'),
     check: new Audio('sounds/move-check.mp3'),
     checkmate: new Audio('sounds/game-end.mp3'),
     draw: new Audio('sounds/game-draw.mp3')
-};
 
-  Object.values(sounds).forEach(sound => sound.load());
+  };
+
+  Object.values(sounds).forEach(sound => sound.load()); // load all the sounds
+
+  // ----------------------------------------------------------------------------------------------------------------------------
 
   function playSound(type) {
-      if (sounds[type]) {
-          sounds[type].play();
+
+      if (sounds[type]) { // if the sound exists
+
+          sounds[type].play(); // play the sound
+
       }
+
   }
+
+  // ----------------------------------------------------------------------------------------------------------------------------
   
-  // Function to analyze the move and play the appropriate sound
   function analyzeAndPlaySound(previousFen, sanMove) {
-    console.log('Previous FEN:', previousFen);
-    console.log('SAN Move:', sanMove);
 
-    const validFen = chess.load(previousFen);  // Load the previous position from the FEN string
+    const validFen = chess.load(previousFen);  //  load the previous fen
 
-    if (!validFen) {
-        console.log('Invalid FEN');
-        return { error: 'Invalid FEN' };
+    if (!validFen) { // if the fen is not valid
+
+        console.log('Invalid FEN'); 
+        return { error: 'Invalid FEN' }; // return an error
+
     }
 
-    console.log('Valid FEN loaded:', chess.fen());
+    const move = chess.move(sanMove); // move the piece
 
-    const move = chess.move(sanMove);
+    if (!move) { // if the move is not valid
 
-    if (!move) {
         console.log('Invalid move:', sanMove);
-        return { error: 'Invalid move' };
+        return { error: 'Invalid move' }; // return an error
+
     }
 
-    console.log('Move:', move);
+    let moveType = 'normal'; // set the move type to normal
 
-    let moveType = 'normal';
+    if (move.captured) { // if the move results in a capture
 
-    if (move.captured) {  // Check if the move results in a capture
-        moveType = 'capture';
-    } else if (chess.in_check()) {
-        moveType = 'check';
+        moveType = 'capture'; // set the move type to capture
+
+    } else if (chess.in_check()) { // if the move results in a check
+
+        moveType = 'check'; // set the move type to check
+
     }
 
-    playSound(moveType);
+    playSound(moveType); // play the appropriate sound
 
     return {
-        moveType: moveType,             
-        fen: chess.fen()    // Return the FEN after the move              
-    };
-  } 
-  
-  
-  // Function to analyze the current position and move
-  function getNextMoveAndAnalyze(fen, pgn, sanMove) {
-      return analyzeAndPlaySound(fen, sanMove);
-  }
 
+        moveType: moveType, // return the move type        
+        fen: chess.fen() // return the fen 
+
+    };
+
+  } 
+
+  // ----------------------------------------------------------------------------------------------------------------------------
 
   function updateBoard(fen) {
-    soundPlayed = false;
 
-    const positions = fen.split(' ')[0]; 
-    const rows = positions.split('/'); 
-    const board = document.getElementById('board');
+    const positions = fen.split(' ')[0];  // get the positions from the fen
+    const rows = positions.split('/'); // split the positions into rows
+    const board = document.getElementById('board'); // get the board
 
-    document.querySelectorAll('.squares').forEach(square => {
-        square.innerHTML = '';
+    document.querySelectorAll('.squares').forEach(square => { // for each square
+
+        square.innerHTML = ''; // clear the square
+
     });
 
-    rows.forEach((row, rowIndex) => {
-        let colIndex = 0;
-        for (let char of row) {
-            if (isNaN(char)) {
-                const squareId = `${String.fromCharCode(97 + colIndex)}${8 - rowIndex}`;
-                const square = board.querySelector(`#${squareId}`);
-                square.innerHTML = getPieceImage(char); 
-                colIndex++;
-            } else {
-                colIndex += parseInt(char); 
+    rows.forEach((row, rowIndex) => { // for each row
+
+        let colIndex = 0; // initialise the column index
+
+        for (let char of row) { // for each character in the row
+
+            if (isNaN(char)) { // if the character is not a number
+
+                const squareId = `${String.fromCharCode(97 + colIndex)}${8 - rowIndex}`; // get the square id
+                const square = board.querySelector(`#${squareId}`); // get the square
+                square.innerHTML = getPieceImage(char); // set the square to the piece image
+                colIndex++; // e
+
+            } else { // if the character is a number
+
+                colIndex += parseInt(char);  // increment the column index by the number
+
             }
+
         }
+
     });
+
   } 
+
+  // ----------------------------------------------------------------------------------------------------------------------------
   
     function getPieceImage(piece) {
-        const pieceName = {
+
+        const pieceName = { // object containing the piece names
+
           'p': 'pawn_black', 'r': 'rook_black', 'n': 'knight_black',
           'b': 'bishop_black', 'q': 'queen_black', 'k': 'king_black',
           'P': 'pawn_white', 'R': 'rook_white', 'N': 'knight_white',
           'B': 'bishop_white', 'Q': 'queen_white', 'K': 'king_white'
         };
-        return `<img src="images/${pieceName[piece]}.png" alt="${pieceName[piece]}">`;
+
+        return `<img src="images/${pieceName[piece]}.png" alt="${pieceName[piece]}">`; // return the image of the piece
+
       }
 
   });
+
+  // ----------------------------------------------------------------------------------------------------------------------------
