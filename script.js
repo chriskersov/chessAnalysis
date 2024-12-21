@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }  
 
-    if (message.includes('bestmove')) { // this is for late
+    if (message.includes('bestmove')) { // this is for later
 
         const match = message.match(/bestmove\s(\w+)/);
 
@@ -459,11 +459,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const bestMove = match[1];
 
+            return bestMove;
+          
         }
 
     }
 
   };
+
+  // ----------------------------------------------------------------------------------------------------------------------------
+
+  // function getBestMove() {
+
+  //   bestMove = stockfish.postMessage('go depth 18'); // post the go command to the stockfish worker
+
+  // }
+
+  function accuracy() { 
+
+    evaluatePosition(moves[0])
+    console.log(getBestMove);
+
+  }
 
   // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -805,6 +822,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
   } 
+
+  // ----------------------------------------------------------------------------------------------------------------------------
+
 
   // ----------------------------------------------------------------------------------------------------------------------------
 
