@@ -300,40 +300,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
   }
 
-  document.getElementById('submit').addEventListener('click', () => {
+  document.getElementById('submit').addEventListener('click', async () => {
+    try {
+        const pgn = document.getElementById('PGN').value;
+        const loaded = chess.load_pgn(pgn);
 
-    const pgn = document.getElementById('PGN').value; 
-    const loaded = chess.load_pgn(pgn); 
+        if (!loaded) {
+            alert('invalid PGN');
+            return;
+        }
 
-    if (!loaded) { // if the pgn is not loaded
+        // Get moves first
+        moves = chess.history({ verbose: true });
+        console.log("Total moves found:", moves.length);
 
-      alert('invalid PGN'); // alert the user that the pgn is invalid
-      return;
+        // Calculate accuracy first
+        document.getElementById('accuracy-white').innerHTML = 'Calculating...';
+        document.getElementById('accuracy-black').innerHTML = 'Calculating...';
+        await calculateAccuracy();
+        
+        // Continue with the rest of the setup
+        currentMoveIndex = moves.length;
+        const fen = chess.fen();
+        updateBoard(fen);
 
+        const playerWhite = pgn.match(/\[White\s"(.*)"\]/);
+        const playerBlack = pgn.match(/\[Black\s"(.*)"\]/);
+
+        if (playerWhite && playerBlack) {
+            adjustFontSize(playerWhite[1], 'player-white');
+            document.getElementById('vs').innerHTML = 'vs';
+            adjustFontSize(playerBlack[1], 'player-black');
+        }
+
+        showHistory(moves);
+
+        const currentFen = chess.fen();
+        evaluatePosition(currentFen);
+        
+    } catch (error) {
+        console.error("Error in submit handler:", error);
+        document.getElementById('accuracy-white').innerHTML = 'Error';
+        document.getElementById('accuracy-black').innerHTML = 'Error';
     }
-
-    moves = chess.history({ verbose: true }); // get the move history of the game
-    currentMoveIndex = moves.length; // set the current move index to the length of the moves array
-    const fen = chess.fen(); // get the fen of the game
-    updateBoard(fen); // update the board with the fen
-
-    const playerWhite = pgn.match(/\[White\s"(.*)"\]/); // get the white player name
-    const playerBlack = pgn.match(/\[Black\s"(.*)"\]/); // get the black player name
-
-    if (playerWhite && playerBlack) { // if both the player names exist
-  
-      adjustFontSize(playerWhite[1], 'player-white'); // adjust the font size of the player name and display name
-      document.getElementById('vs').innerHTML = 'vs'; // vs
-      adjustFontSize(playerBlack[1], 'player-black'); // adjust the font size of the player name and display name
-
-    }
-
-    showHistory(moves);
-
-    const currentFen = chess.fen();
-    evaluatePosition(currentFen);
-
-  });
+});
 
   // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -466,6 +476,154 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
   };
+
+  // 
+  async function calculateAccuracy() {
+    console.log("Starting accuracy calculation...");
+    
+    // Reset chess board to start position
+    chess.reset();
+    const gameMoves = moves.slice();
+    console.log("Total moves to analyze:", gameMoves.length);
+    
+    // Initialize arrays to store evaluations
+    const whiteAccuracies = [];
+    const blackAccuracies = [];
+    
+    // Function to get stockfish evaluation for a position
+    function getStockfishEval(fen) {
+        return new Promise((resolve) => {
+            let bestMove = null;
+            let evaluation = null;
+            let resolved = false;
+            
+            const messageHandler = (event) => {
+                const message = event.data;
+                
+                if (message.includes('info depth')) {
+                    const matchCp = message.match(/score cp (-?\d+)/);
+                    const matchMate = message.match(/score mate (-?\d+)/);
+                    
+                    if (matchCp) {
+                        evaluation = parseInt(matchCp[1]) / 100;
+                    } else if (matchMate) {
+                        const mateIn = parseInt(matchMate[1]);
+                        evaluation = mateIn > 0 ? 100 : -100;
+                    }
+                }
+                
+                if (message.includes('bestmove') && !resolved) {
+                    resolved = true;
+                    stockfish.removeEventListener('message', messageHandler);
+                    resolve({ bestMove: bestMove || 'none', evaluation: evaluation || 0 });
+                }
+            };
+            
+            stockfish.addEventListener('message', messageHandler);
+            stockfish.postMessage('position fen ' + fen);
+            stockfish.postMessage('go depth 15 movetime 1000');
+        });
+    }
+    
+    // Calculate accuracy for a single move
+    function calculateMoveAccuracy(playedEval, bestEval) {
+        console.log(`Calculating accuracy - Played: ${playedEval}, Best: ${bestEval}`);
+        
+        if (bestEval === null || playedEval === null) return 0;
+        
+        // Convert mate scores to high numerical values
+        if (bestEval === 100) bestEval = 20;
+        if (bestEval === -100) bestEval = -20;
+        if (playedEval === 100) playedEval = 20;
+        if (playedEval === -100) playedEval = -20;
+        
+        // Calculate the difference in evaluation
+        const evalDiff = Math.abs(playedEval - bestEval);
+        
+        // Convert the difference to an accuracy percentage
+        let accuracy = 100;
+        if (evalDiff > 0) {
+            accuracy = Math.max(0, 100 - (evalDiff * 5));
+        }
+        
+        console.log(`Move accuracy calculated: ${accuracy}%`);
+        return Math.round(accuracy);
+    }
+    
+    try {
+        // Analyze each position
+        for (let i = 0; i < gameMoves.length; i++) {
+            const currentFen = chess.fen();
+            console.log(`\nAnalyzing move ${i + 1}/${gameMoves.length}`);
+            console.log(`Current FEN: ${currentFen}`);
+            
+            // Get best move evaluation
+            console.log("Getting best move evaluation...");
+            const bestMoveAnalysis = await getStockfishEval(currentFen);
+            console.log(`Best move analysis:`, bestMoveAnalysis);
+            
+            // Make the actual move that was played
+            const moveResult = chess.move(gameMoves[i]);
+            console.log(`Played move: ${moveResult.san}`);
+            
+            // Skip evaluation for the final position if it's checkmate
+            if (i === gameMoves.length - 1 && moveResult.san.includes('#')) {
+                const moveAccuracy = 100; // Perfect accuracy for delivering checkmate
+                if (i % 2 === 0) {
+                    whiteAccuracies.push(moveAccuracy);
+                    console.log(`White move accuracy: ${moveAccuracy}%`);
+                } else {
+                    blackAccuracies.push(moveAccuracy);
+                    console.log(`Black move accuracy: ${moveAccuracy}%`);
+                }
+                break;
+            }
+            
+            // Get evaluation after played move
+            console.log("Getting played move evaluation...");
+            const playedMoveAnalysis = await getStockfishEval(chess.fen());
+            console.log(`Played move analysis:`, playedMoveAnalysis);
+            
+            // Calculate accuracy for this move
+            const moveAccuracy = calculateMoveAccuracy(
+                playedMoveAnalysis.evaluation,
+                bestMoveAnalysis.evaluation
+            );
+            
+            // Store accuracy based on player
+            if (i % 2 === 0) {
+                whiteAccuracies.push(moveAccuracy);
+                console.log(`White move accuracy: ${moveAccuracy}%`);
+            } else {
+                blackAccuracies.push(moveAccuracy);
+                console.log(`Black move accuracy: ${moveAccuracy}%`);
+            }
+        }
+        
+        // Calculate average accuracies
+        const whiteAccuracy = whiteAccuracies.length > 0 
+            ? Math.round(whiteAccuracies.reduce((a, b) => a + b) / whiteAccuracies.length) 
+            : 0;
+        const blackAccuracy = blackAccuracies.length > 0 
+            ? Math.round(blackAccuracies.reduce((a, b) => a + b) / blackAccuracies.length) 
+            : 0;
+        
+        console.log("\nFinal Results:");
+        console.log("White accuracies:", whiteAccuracies);
+        console.log("Black accuracies:", blackAccuracies);
+        console.log("Final White accuracy:", whiteAccuracy + "%");
+        console.log("Final Black accuracy:", blackAccuracy + "%");
+        
+        // Update the display
+        document.getElementById('accuracy-white').innerHTML = `${whiteAccuracy}%`;
+        document.getElementById('accuracy-black').innerHTML = `${blackAccuracy}%`;
+        
+    } catch (error) {
+        console.error("Error calculating accuracy:", error);
+        document.getElementById('accuracy-white').innerHTML = 'Error';
+        document.getElementById('accuracy-black').innerHTML = 'Error';
+    }
+}
 
   // ----------------------------------------------------------------------------------------------------------------------------
 

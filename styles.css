@@ -407,12 +407,42 @@ html, body {
     color: rgb(221, 205, 249);
 }
 
-#temp{
+#accuracy-wrapper{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    height: 3.3vmin;
+    margin:0 0 2vmin 0;
+    font-size: 2vmin;
+}
+
+#accuracy-white{
+    font-size: 2vmin;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 20%;
-    width: 100%;
+    height: 100%;
+    /* background-color: rgb(221, 205, 249); */
+    border-radius: 0.7vmin;
+    width: calc(50% - 0.6vmin);
+    border: none;
+    cursor: pointer;
+    transition: 0.7s ease;
+}
+
+#accuracy-black{
+    font-size: 2vmin;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    /* background-color: rgb(221, 205, 249); */
+    border-radius: 0.7vmin;
+    width: calc(50% - 0.6vmin);
+    border: none;
+    cursor: pointer;
+    transition: 0.7s ease;
 }
 
 #move-history{
