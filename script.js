@@ -313,13 +313,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show calculation overlay and set calculating flag
         document.getElementById('calculation-overlay').style.display = 'flex';
+        // Add blur to specific elements
+        document.getElementById('left-box').classList.add('blur');
+        document.getElementById('board').classList.add('blur');
+        document.getElementById('right-box').classList.add('blur');
+        document.getElementById('eval-bar').classList.add('blur');  // Add this line
         isCalculating = true;
 
         moves = chess.history({ verbose: true });
         console.log("Total moves found:", moves.length);
 
-        // document.getElementById('accuracy-white').innerHTML = 'Calculating...';
-        // document.getElementById('accuracy-black').innerHTML = 'Calculating...';
         await calculateAccuracy();
         
         // Continue with the rest of the setup
@@ -344,10 +347,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Error in submit handler:", error);
         document.getElementById('accuracy-white').innerHTML = 'Error';
         document.getElementById('accuracy-black').innerHTML = 'Error';
-    } finally {
+      } finally {
         // Reset flag and hide overlay in finally block
         isCalculating = false;
         document.getElementById('calculation-overlay').style.display = 'none';
+        // Remove blur from specific elements
+        document.getElementById('left-box').classList.remove('blur');
+        document.getElementById('board').classList.remove('blur');
+        document.getElementById('right-box').classList.remove('blur');
+        document.getElementById('eval-bar').classList.remove('blur');  // Add this line
     }
   });
 
@@ -492,7 +500,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reset chess board to start position
     chess.reset();
     const gameMoves = moves.slice();
-    console.log("Total moves to analyze:", gameMoves.length);
+    
+    // Initialize progress bar
+    const totalMoves = gameMoves.length;
+    // document.getElementById('move-counter').textContent = `1/${totalMoves}`;
+    document.getElementById('progress-bar').style.width = '0%';
+    
+    console.log("Total moves to analyze:", totalMoves);
     
     // Initialize arrays to store evaluations
     const whiteAccuracies = [];
@@ -561,6 +575,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         // Analyze each position
         for (let i = 0; i < gameMoves.length; i++) {
+            // Update progress bar and counter
+            // document.getElementById('move-counter').textContent = `${i + 1}/${totalMoves}`;
+            document.getElementById('progress-bar').style.width = `${((i + 1) / totalMoves) * 100}%`;
+            
             const currentFen = chess.fen();
             console.log(`\nAnalyzing move ${i + 1}/${gameMoves.length}`);
             console.log(`Current FEN: ${currentFen}`);
@@ -627,12 +645,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('accuracy-black').innerHTML = `${blackAccuracy}%`;
         
     } catch (error) {
-        console.error("Error calculating accuracy:", error);
-        document.getElementById('accuracy-white').innerHTML = 'Error';
-        document.getElementById('accuracy-black').innerHTML = 'Error';
+      console.error("Error calculating accuracy:", error);
+      document.getElementById('accuracy-white').innerHTML = 'Error';
+      document.getElementById('accuracy-black').innerHTML = 'Error';
     } finally {
-        // Always hide the overlay when we're done, whether successful or not
-        document.getElementById('calculation-overlay').style.display = 'none';
+      // Add a delay before hiding everything
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Always hide the overlay when we're done, whether successful or not
+      document.getElementById('calculation-overlay').style.display = 'none';
+      // Remove blur from specific elements
+      document.getElementById('left-box').classList.remove('blur');
+      document.getElementById('board').classList.remove('blur');
+      document.getElementById('right-box').classList.remove('blur');
+      document.getElementById('eval-bar').classList.remove('blur');
     }
   }
 
