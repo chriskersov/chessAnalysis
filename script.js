@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const overlay = document.getElementById('overlay');
   const pgnTextarea = document.getElementById('PGN');
   let dragCounter = 0;
+  let isCalculating = false;
 
   // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -310,13 +311,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Get moves first
+        // Show calculation overlay and set calculating flag
+        document.getElementById('calculation-overlay').style.display = 'flex';
+        isCalculating = true;
+
         moves = chess.history({ verbose: true });
         console.log("Total moves found:", moves.length);
 
-        // Calculate accuracy first
-        document.getElementById('accuracy-white').innerHTML = 'Calculating...';
-        document.getElementById('accuracy-black').innerHTML = 'Calculating...';
+        // document.getElementById('accuracy-white').innerHTML = 'Calculating...';
+        // document.getElementById('accuracy-black').innerHTML = 'Calculating...';
         await calculateAccuracy();
         
         // Continue with the rest of the setup
@@ -334,7 +337,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         showHistory(moves);
-
         const currentFen = chess.fen();
         evaluatePosition(currentFen);
         
@@ -342,8 +344,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Error in submit handler:", error);
         document.getElementById('accuracy-white').innerHTML = 'Error';
         document.getElementById('accuracy-black').innerHTML = 'Error';
+    } finally {
+        // Reset flag and hide overlay in finally block
+        isCalculating = false;
+        document.getElementById('calculation-overlay').style.display = 'none';
     }
-});
+  });
 
   // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -417,6 +423,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   stockfish.onmessage = function(event) { // when the stockfish worker sends a message
+
+    if (isCalculating) return;
 
     const message = event.data; // get the message from the event data
 
@@ -622,8 +630,11 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Error calculating accuracy:", error);
         document.getElementById('accuracy-white').innerHTML = 'Error';
         document.getElementById('accuracy-black').innerHTML = 'Error';
+    } finally {
+        // Always hide the overlay when we're done, whether successful or not
+        document.getElementById('calculation-overlay').style.display = 'none';
     }
-}
+  }
 
   // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -747,15 +758,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('keydown', (event) => { // when a key is pressed
 
-      if (event.key === 'ArrowLeft') { // if the key is the left arrow key
+    if (isCalculating) return; // skip if calculating accuracy
 
-          previousPosition(); // call previous position function
+    if (event.key === 'ArrowLeft') { // if the key is the left arrow key
 
-      } if (event.key === 'ArrowRight') { // if the key is the right arrow key
+        previousPosition(); // call previous position function
 
-          nextPosition(); // call next position function
+    } if (event.key === 'ArrowRight') { // if the key is the right arrow key
 
-      }
+        nextPosition(); // call next position function
+
+    }
 
   });
 
