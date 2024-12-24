@@ -543,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             stockfish.addEventListener('message', messageHandler);
             stockfish.postMessage('position fen ' + fen);
-            stockfish.postMessage('go depth 15 movetime 1000');
+            stockfish.postMessage('go depth 12');
         });
     }
     
