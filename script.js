@@ -493,130 +493,111 @@ document.addEventListener('DOMContentLoaded', () => {
 
   };
 
-  // 
-  function calculateWinPercentage(centipawns) {
-    // Clamp centipawns to prevent extreme values
-    centipawns = Math.min(1000, Math.max(-1000, centipawns));
-    const MULTIPLIER = -0.00368208;
-    return 50 + 50 * (2 / (1 + Math.exp(MULTIPLIER * centipawns)) - 1);
-  }
+// ----------------------------------------------------------------------------------------------------------------------------
+
+async function calculateAccuracy() {
+  console.log("Starting accuracy calculation...");
+  chess.reset();
+  const gameMoves = moves.slice();
   
-  function calculateMoveAccuracy(beforeCp, afterCp, isWhite) {
-    // Convert to win percentages from proper perspective
-    const winPercentBefore = isWhite ? calculateWinPercentage(beforeCp) : calculateWinPercentage(-beforeCp);
-    const winPercentAfter = isWhite ? calculateWinPercentage(afterCp) : calculateWinPercentage(-afterCp);
+  const totalMoves = gameMoves.length;
+  document.getElementById('progress-bar').style.width = '0%';
   
-    // If position improved, return 100%
-    if (winPercentAfter >= winPercentBefore) return 100;
-  
-    const winDiff = winPercentBefore - winPercentAfter;
-    // Lichess formula
-    const raw = 103.1668 * Math.exp(-0.04354 * winDiff) - 3.1669;
-    
-    // Add uncertainty bonus and clamp between 0-100
-    return Math.min(100, Math.max(0, raw + 1));
-  }
-  
-  async function calculateAccuracy() {
-    console.log("Starting accuracy calculation...");
-    chess.reset();
-    
-    const totalMoves = moves.length;
-    document.getElementById('progress-bar').style.width = '0%';
-    
-    const whiteAccuracies = [];
-    const blackAccuracies = [];
-    
-    async function getStockfishEval(fen) {
+  const whiteAccuracies = [];
+  const blackAccuracies = [];
+
+  function getStockfishEval(fen) {
       return new Promise((resolve) => {
-        let evaluation = null;
-        let resolved = false;
-        
-        const messageHandler = (event) => {
-          const message = event.data;
+          let evaluation = null;
+          let resolved = false;
           
-          if (message.includes('info depth')) {
-            const matchCp = message.match(/score cp (-?\d+)/);
-            const matchMate = message.match(/score mate (-?\d+)/);
-            
-            if (matchCp) {
-              evaluation = parseInt(matchCp[1]);
-            } else if (matchMate) {
-              const mateIn = parseInt(matchMate[1]);
-              // Use large centipawn value for mate
-              evaluation = mateIn > 0 ? 1000 : -1000;
-            }
-          }
+          const messageHandler = (event) => {
+              const message = event.data;
+              if (message.includes('info depth')) {
+                  const matchCp = message.match(/score cp (-?\d+)/);
+                  const matchMate = message.match(/score mate (-?\d+)/);
+                  
+                  if (matchCp) {
+                      evaluation = parseInt(matchCp[1]);
+                  } else if (matchMate) {
+                      const mateIn = parseInt(matchMate[1]);
+                      evaluation = mateIn > 0 ? 1000 : -1000;
+                  }
+              }
+              
+              if (message.includes('bestmove') && !resolved) {
+                  resolved = true;
+                  stockfish.removeEventListener('message', messageHandler);
+                  resolve({ bestMove: 'none', evaluation: evaluation || 0 });
+              }
+          };
           
-          if (message.includes('bestmove') && !resolved) {
-            resolved = true;
-            stockfish.removeEventListener('message', messageHandler);
-            resolve(evaluation || 0);
-          }
-        };
-        
-        stockfish.addEventListener('message', messageHandler);
-        stockfish.postMessage('position fen ' + fen);
-        stockfish.postMessage('go depth 12 movetime 300');
+          stockfish.addEventListener('message', messageHandler);
+          stockfish.postMessage('position fen ' + fen);
+          stockfish.postMessage('go depth 10');
       });
-    }
-    
-    try {
-      // Initial position evaluation
-      let prevEval = await getStockfishEval(chess.fen());
+  }
+  
+  try {
+      let prevEval = (await getStockfishEval(chess.fen())).evaluation;
       
-      for (let i = 0; i < moves.length; i++) {
-        // Update progress bar
-        document.getElementById('progress-bar').style.width = `${((i + 1) / totalMoves) * 100}%`;
-        
-        const isWhite = i % 2 === 0;
-        
-        // Make the move
-        chess.move(moves[i]);
-        
-        // Special handling for checkmate
-        if (chess.in_checkmate()) {
-          const accuracy = 100; // Perfect accuracy for delivering checkmate
+      for (let i = 0; i < gameMoves.length; i++) {
+          document.getElementById('progress-bar').style.width = `${((i + 1) / totalMoves) * 100}%`;
+          
+          const isWhite = i % 2 === 0;
+          chess.move(gameMoves[i]);
+          
+          if (chess.in_checkmate()) {
+              const accuracy = 100;
+              (isWhite ? whiteAccuracies : blackAccuracies).push(accuracy);
+              continue;
+          }
+          
+          const newEval = (await getStockfishEval(chess.fen())).evaluation;
+          
+          // Convert evaluations to win percentages
+          const beforeWinPercent = 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * prevEval)) - 1);
+          const afterWinPercent = 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * newEval)) - 1);
+          
+          // Calculate move accuracy
+          let accuracy;
+          if (isWhite) {
+              accuracy = afterWinPercent >= beforeWinPercent ? 100 : 
+                  Math.max(0, Math.min(100, 103.1668 * Math.exp(-0.04354 * (beforeWinPercent - afterWinPercent)) - 3.1669 + 1));
+          } else {
+              const beforeBlack = 100 - beforeWinPercent;
+              const afterBlack = 100 - afterWinPercent;
+              accuracy = afterBlack >= beforeBlack ? 100 :
+                  Math.max(0, Math.min(100, 103.1668 * Math.exp(-0.04354 * (beforeBlack - afterBlack)) - 3.1669 + 1));
+          }
+          
           (isWhite ? whiteAccuracies : blackAccuracies).push(accuracy);
-          continue;
-        }
-        
-        // Get evaluation after move
-        const newEval = await getStockfishEval(chess.fen());
-        
-        // Calculate accuracy from proper perspective
-        const accuracy = calculateMoveAccuracy(prevEval, newEval, isWhite);
-        (isWhite ? whiteAccuracies : blackAccuracies).push(accuracy);
-        
-        prevEval = newEval;
+          prevEval = newEval;
       }
       
-      // Calculate final accuracies using weighted averages
-      // More weight to early/middle game moves
-      const calculateWeightedAccuracy = (accuracies) => {
-        if (accuracies.length === 0) return 0;
-        let total = 0;
-        let weightSum = 0;
-        accuracies.forEach((acc, idx) => {
-          const weight = Math.max(1, (accuracies.length - idx) / accuracies.length);
-          total += acc * weight;
-          weightSum += weight;
-        });
-        return Math.round(total / weightSum);
-      };
-  
-      const whiteAccuracy = calculateWeightedAccuracy(whiteAccuracies);
-      const blackAccuracy = calculateWeightedAccuracy(blackAccuracies);
+      const whiteAccuracy = whiteAccuracies.length > 0 
+          ? Math.round(whiteAccuracies.reduce((a, b) => a + b) / whiteAccuracies.length)
+          : 0;
+      const blackAccuracy = blackAccuracies.length > 0 
+          ? Math.round(blackAccuracies.reduce((a, b) => a + b) / blackAccuracies.length)
+          : 0;
       
       document.getElementById('accuracy-white').innerHTML = `${whiteAccuracy}%`;
       document.getElementById('accuracy-black').innerHTML = `${blackAccuracy}%`;
       
-    } catch (error) {
+  } catch (error) {
       console.error("Error calculating accuracy:", error);
       document.getElementById('accuracy-white').innerHTML = 'Error';
       document.getElementById('accuracy-black').innerHTML = 'Error';
-    }
+  } finally {
+      isCalculating = false;
+      document.getElementById('calculation-overlay').style.display = 'none';
+      document.getElementById('left-box').classList.remove('blur');
+      document.getElementById('board').classList.remove('blur');
+      document.getElementById('right-box').classList.remove('blur');
+      document.getElementById('eval-bar').classList.remove('blur');
   }
+}
 
   // ----------------------------------------------------------------------------------------------------------------------------
 
