@@ -496,91 +496,109 @@ document.addEventListener('DOMContentLoaded', () => {
 // ----------------------------------------------------------------------------------------------------------------------------
 
 async function calculateAccuracy() {
-  console.log("Starting accuracy calculation...");
-  chess.reset();
-  const gameMoves = moves.slice();
-  
-  const totalMoves = gameMoves.length;
-  document.getElementById('progress-bar').style.width = '0%';
-  
-  const whiteAccuracies = [];
-  const blackAccuracies = [];
-
-  function getStockfishEval(fen) {
-      return new Promise((resolve) => {
-          let evaluation = null;
-          let resolved = false;
-          
-          const messageHandler = (event) => {
-              const message = event.data;
-              if (message.includes('info depth')) {
-                  const matchCp = message.match(/score cp (-?\d+)/);
-                  const matchMate = message.match(/score mate (-?\d+)/);
-                  
-                  if (matchCp) {
-                      evaluation = parseInt(matchCp[1]);
-                  } else if (matchMate) {
-                      const mateIn = parseInt(matchMate[1]);
-                      evaluation = mateIn > 0 ? 1000 : -1000;
-                  }
-              }
-              
-              if (message.includes('bestmove') && !resolved) {
-                  resolved = true;
-                  stockfish.removeEventListener('message', messageHandler);
-                  resolve({ bestMove: 'none', evaluation: evaluation || 0 });
-              }
-          };
-          
-          stockfish.addEventListener('message', messageHandler);
-          stockfish.postMessage('position fen ' + fen);
-          stockfish.postMessage('go depth 10');
-      });
-  }
-  
   try {
+      console.log("Starting accuracy calculation...");
+      
+      // UI setup
+      document.getElementById('calculation-overlay').style.display = 'flex';
+      document.getElementById('left-box').classList.add('blur');
+      document.getElementById('board').classList.add('blur');
+      document.getElementById('right-box').classList.add('blur');
+      document.getElementById('eval-bar').classList.add('blur');
+      isCalculating = true;
+
+      const accuracies = {
+          white: { current: 0, maximum: 0 },
+          black: { current: 0, maximum: 0 }
+      };
+
+      const classificationValues = {
+          "blunder": 0,
+          "mistake": 0.2,
+          "inaccuracy": 0.4,
+          "good": 0.65,
+          "excellent": 0.9,
+          "best": 1,
+          "great": 1,
+          "brilliant": 1,
+          "book": 1,
+          "forced": 1
+      };
+
+      function getEvaluationLossThreshold(classif, prevEval) {
+          prevEval = Math.abs(prevEval);
+          let threshold = 0;
+          switch (classif) {
+              case "best":
+                  threshold = 0.0001 * Math.pow(prevEval, 2) + (0.0236 * prevEval) - 3.7143;
+                  break;
+              case "excellent":
+                  threshold = 0.0002 * Math.pow(prevEval, 2) + (0.1231 * prevEval) + 27.5455;
+                  break;
+              case "good":
+                  threshold = 0.0002 * Math.pow(prevEval, 2) + (0.2643 * prevEval) + 60.5455;
+                  break;
+              case "inaccuracy":
+                  threshold = 0.0002 * Math.pow(prevEval, 2) + (0.3624 * prevEval) + 108.0909;
+                  break;
+              case "mistake":
+                  threshold = 0.0003 * Math.pow(prevEval, 2) + (0.4027 * prevEval) + 225.8182;
+                  break;
+              default:
+                  threshold = Infinity;
+          }
+          return Math.max(threshold, 0);
+      }
+
+      chess.reset();
+      const gameMoves = moves.slice();
       let prevEval = (await getStockfishEval(chess.fen())).evaluation;
       
       for (let i = 0; i < gameMoves.length; i++) {
-          document.getElementById('progress-bar').style.width = `${((i + 1) / totalMoves) * 100}%`;
+          document.getElementById('progress-bar').style.width = `${((i + 1) / gameMoves.length) * 100}%`;
           
-          const isWhite = i % 2 === 0;
+          const moveColor = i % 2 === 0 ? 'white' : 'black';
           chess.move(gameMoves[i]);
-          
+
           if (chess.in_checkmate()) {
-              const accuracy = 100;
-              (isWhite ? whiteAccuracies : blackAccuracies).push(accuracy);
+              accuracies[moveColor].current += 1;
+              accuracies[moveColor].maximum++;
               continue;
           }
-          
+
           const newEval = (await getStockfishEval(chess.fen())).evaluation;
           
-          // Convert evaluations to win percentages
-          const beforeWinPercent = 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * prevEval)) - 1);
-          const afterWinPercent = 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * newEval)) - 1);
+          // Calculate eval loss from proper perspective
+          const evalLoss = moveColor === 'white' ? 
+              prevEval - newEval : 
+              newEval - prevEval;
+
+          // Determine classification based on eval loss
+          let classification = "blunder";
+          const classifications = ["best", "excellent", "good", "inaccuracy", "mistake"];
           
-          // Calculate move accuracy
-          let accuracy;
-          if (isWhite) {
-              accuracy = afterWinPercent >= beforeWinPercent ? 100 : 
-                  Math.max(0, Math.min(100, 103.1668 * Math.exp(-0.04354 * (beforeWinPercent - afterWinPercent)) - 3.1669 + 1));
-          } else {
-              const beforeBlack = 100 - beforeWinPercent;
-              const afterBlack = 100 - afterWinPercent;
-              accuracy = afterBlack >= beforeBlack ? 100 :
-                  Math.max(0, Math.min(100, 103.1668 * Math.exp(-0.04354 * (beforeBlack - afterBlack)) - 3.1669 + 1));
+          for (const classif of classifications) {
+              if (evalLoss <= getEvaluationLossThreshold(classif, prevEval)) {
+                  classification = classif;
+                  break;
+              }
           }
+
+          // Handle forced moves and book moves
+          if (!chess.moves().length) {
+              classification = "forced";
+          }
+
+          // Add to accuracy calculation
+          accuracies[moveColor].current += classificationValues[classification];
+          accuracies[moveColor].maximum++;
           
-          (isWhite ? whiteAccuracies : blackAccuracies).push(accuracy);
           prevEval = newEval;
       }
       
-      const whiteAccuracy = whiteAccuracies.length > 0 
-          ? Math.round(whiteAccuracies.reduce((a, b) => a + b) / whiteAccuracies.length)
-          : 0;
-      const blackAccuracy = blackAccuracies.length > 0 
-          ? Math.round(blackAccuracies.reduce((a, b) => a + b) / blackAccuracies.length)
-          : 0;
+      // Calculate final accuracies exactly as in his code
+      const whiteAccuracy = Math.round((accuracies.white.current / accuracies.white.maximum) * 100);
+      const blackAccuracy = Math.round((accuracies.black.current / accuracies.black.maximum) * 100);
       
       document.getElementById('accuracy-white').innerHTML = `${whiteAccuracy}%`;
       document.getElementById('accuracy-black').innerHTML = `${blackAccuracy}%`;
@@ -597,6 +615,38 @@ async function calculateAccuracy() {
       document.getElementById('right-box').classList.remove('blur');
       document.getElementById('eval-bar').classList.remove('blur');
   }
+}
+
+function getStockfishEval(fen) {
+  return new Promise((resolve) => {
+      let evaluation = null;
+      let resolved = false;
+      
+      const messageHandler = (event) => {
+          const message = event.data;
+          if (message.includes('info depth')) {
+              const matchCp = message.match(/score cp (-?\d+)/);
+              const matchMate = message.match(/score mate (-?\d+)/);
+              
+              if (matchCp) {
+                  evaluation = parseInt(matchCp[1]);
+              } else if (matchMate) {
+                  const mateIn = parseInt(matchMate[1]);
+                  evaluation = mateIn > 0 ? 1000 : -1000;
+              }
+          }
+          
+          if (message.includes('bestmove') && !resolved) {
+              resolved = true;
+              stockfish.removeEventListener('message', messageHandler);
+              resolve({ bestMove: 'none', evaluation: evaluation || 0 });
+          }
+      };
+      
+      stockfish.addEventListener('message', messageHandler);
+      stockfish.postMessage('position fen ' + fen);
+      stockfish.postMessage('go depth 12');
+  });
 }
 
   // ----------------------------------------------------------------------------------------------------------------------------
