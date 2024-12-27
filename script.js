@@ -495,158 +495,305 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-async function calculateAccuracy() {
-  try {
-      console.log("Starting accuracy calculation...");
-      
-      // UI setup
-      document.getElementById('calculation-overlay').style.display = 'flex';
-      document.getElementById('left-box').classList.add('blur');
-      document.getElementById('board').classList.add('blur');
-      document.getElementById('right-box').classList.add('blur');
-      document.getElementById('eval-bar').classList.add('blur');
-      isCalculating = true;
-
-      const accuracies = {
-          white: { current: 0, maximum: 0 },
-          black: { current: 0, maximum: 0 }
-      };
-
-      const classificationValues = {
-          "blunder": 0,
-          "mistake": 0.2,
-          "inaccuracy": 0.4,
-          "good": 0.65,
-          "excellent": 0.9,
-          "best": 1,
-          "great": 1,
-          "brilliant": 1,
-          "book": 1,
-          "forced": 1
-      };
-
-      function getEvaluationLossThreshold(classif, prevEval) {
-          prevEval = Math.abs(prevEval);
-          let threshold = 0;
-          switch (classif) {
-              case "best":
-                  threshold = 0.0001 * Math.pow(prevEval, 2) + (0.0236 * prevEval) - 3.7143;
-                  break;
-              case "excellent":
-                  threshold = 0.0002 * Math.pow(prevEval, 2) + (0.1231 * prevEval) + 27.5455;
-                  break;
-              case "good":
-                  threshold = 0.0002 * Math.pow(prevEval, 2) + (0.2643 * prevEval) + 60.5455;
-                  break;
-              case "inaccuracy":
-                  threshold = 0.0002 * Math.pow(prevEval, 2) + (0.3624 * prevEval) + 108.0909;
-                  break;
-              case "mistake":
-                  threshold = 0.0003 * Math.pow(prevEval, 2) + (0.4027 * prevEval) + 225.8182;
-                  break;
-              default:
-                  threshold = Infinity;
-          }
-          return Math.max(threshold, 0);
-      }
-
-      chess.reset();
-      const gameMoves = moves.slice();
-      let prevEval = (await getStockfishEval(chess.fen())).evaluation;
-      
-      for (let i = 0; i < gameMoves.length; i++) {
-          document.getElementById('progress-bar').style.width = `${((i + 1) / gameMoves.length) * 100}%`;
-          
-          const moveColor = i % 2 === 0 ? 'white' : 'black';
-          chess.move(gameMoves[i]);
-
-          if (chess.in_checkmate()) {
-              accuracies[moveColor].current += 1;
-              accuracies[moveColor].maximum++;
-              continue;
-          }
-
-          const newEval = (await getStockfishEval(chess.fen())).evaluation;
-          
-          // Calculate eval loss from proper perspective
-          const evalLoss = moveColor === 'white' ? 
-              prevEval - newEval : 
-              newEval - prevEval;
-
-          // Determine classification based on eval loss
-          let classification = "blunder";
-          const classifications = ["best", "excellent", "good", "inaccuracy", "mistake"];
-          
-          for (const classif of classifications) {
-              if (evalLoss <= getEvaluationLossThreshold(classif, prevEval)) {
-                  classification = classif;
-                  break;
-              }
-          }
-
-          // Handle forced moves and book moves
-          if (!chess.moves().length) {
-              classification = "forced";
-          }
-
-          // Add to accuracy calculation
-          accuracies[moveColor].current += classificationValues[classification];
-          accuracies[moveColor].maximum++;
-          
-          prevEval = newEval;
-      }
-      
-      // Calculate final accuracies exactly as in his code
-      const whiteAccuracy = Math.round((accuracies.white.current / accuracies.white.maximum) * 100);
-      const blackAccuracy = Math.round((accuracies.black.current / accuracies.black.maximum) * 100);
-      
-      document.getElementById('accuracy-white').innerHTML = `${whiteAccuracy}%`;
-      document.getElementById('accuracy-black').innerHTML = `${blackAccuracy}%`;
-      
-  } catch (error) {
-      console.error("Error calculating accuracy:", error);
-      document.getElementById('accuracy-white').innerHTML = 'Error';
-      document.getElementById('accuracy-black').innerHTML = 'Error';
-  } finally {
-      isCalculating = false;
-      document.getElementById('calculation-overlay').style.display = 'none';
-      document.getElementById('left-box').classList.remove('blur');
-      document.getElementById('board').classList.remove('blur');
-      document.getElementById('right-box').classList.remove('blur');
-      document.getElementById('eval-bar').classList.remove('blur');
-  }
-}
-
 function getStockfishEval(fen) {
   return new Promise((resolve) => {
-      let evaluation = null;
-      let resolved = false;
+    let evaluation = null;
+    let lastDepth = 0;
+    let resolved = false;
+    
+    console.log('Starting evaluation for position:', fen);
+    
+    const messageHandler = (event) => {
+      const message = event.data;
+      console.log('Stockfish:', message);
       
-      const messageHandler = (event) => {
-          const message = event.data;
-          if (message.includes('info depth')) {
-              const matchCp = message.match(/score cp (-?\d+)/);
-              const matchMate = message.match(/score mate (-?\d+)/);
-              
-              if (matchCp) {
-                  evaluation = parseInt(matchCp[1]);
-              } else if (matchMate) {
-                  const mateIn = parseInt(matchMate[1]);
-                  evaluation = mateIn > 0 ? 1000 : -1000;
-              }
-          }
-          
-          if (message.includes('bestmove') && !resolved) {
-              resolved = true;
-              stockfish.removeEventListener('message', messageHandler);
-              resolve({ bestMove: 'none', evaluation: evaluation || 0 });
-          }
-      };
+      if (message.includes('info depth')) {
+        const depthMatch = message.match(/depth (\d+)/);
+        if (depthMatch) {
+          lastDepth = parseInt(depthMatch[1]);
+        }
+        
+        const matchCp = message.match(/score cp (-?\d+)/);
+        const matchMate = message.match(/score mate (-?\d+)/);
+        
+        if (matchCp) {
+          evaluation = parseInt(matchCp[1]);
+          console.log(`Depth ${lastDepth}, eval: ${evaluation}`);
+        } else if (matchMate) {
+          const mateIn = parseInt(matchMate[1]);
+          evaluation = mateIn > 0 ? 1000 : -1000;
+          console.log(`Depth ${lastDepth}, mate in: ${mateIn}`);
+        }
+      }
       
-      stockfish.addEventListener('message', messageHandler);
-      stockfish.postMessage('position fen ' + fen);
-      stockfish.postMessage('go depth 12');
+      if (message.includes('bestmove') && !resolved) {
+        console.log('Got bestmove, final evaluation:', evaluation);
+        resolved = true;
+        stockfish.removeEventListener('message', messageHandler);
+        resolve({ evaluation: evaluation || 0 });
+      }
+    };
+
+    stockfish.addEventListener('message', messageHandler);
+    stockfish.postMessage('position fen ' + fen);
+    stockfish.postMessage('go depth 12');
   });
+}
+
+function getEvaluationLossThreshold(classif, prevEval) {
+  prevEval = Math.abs(prevEval);
+  let threshold = 0;
+  switch (classif) {
+    case "best":
+      threshold = 0.0001 * Math.pow(prevEval, 2) + (0.0236 * prevEval) - 3.7143;
+      break;
+    case "excellent":
+      threshold = 0.0002 * Math.pow(prevEval, 2) + (0.1231 * prevEval) + 27.5455;
+      break;
+    case "good":
+      threshold = 0.0002 * Math.pow(prevEval, 2) + (0.2643 * prevEval) + 60.5455;
+      break;
+    case "inaccuracy":
+      threshold = 0.0002 * Math.pow(prevEval, 2) + (0.3624 * prevEval) + 108.0909;
+      break;
+    case "mistake":
+      threshold = 0.0003 * Math.pow(prevEval, 2) + (0.4027 * prevEval) + 225.8182;
+      break;
+    default:
+      threshold = Infinity;
+  }
+  return Math.max(threshold, 0);
+}
+
+async function calculateAccuracy() {
+  try {
+    console.log("Starting accuracy calculation...");
+    
+    // Define classification values at the start
+    const classificationValues = {
+      "blunder": 0,
+      "mistake": 0.2,
+      "inaccuracy": 0.4,
+      "good": 0.65,
+      "excellent": 0.9,
+      "best": 1,
+      "great": 1,
+      "brilliant": 1,
+      "book": 1,
+      "forced": 1
+    };
+    
+    // UI setup
+    document.getElementById('calculation-overlay').style.display = 'flex';
+    document.getElementById('left-box').classList.add('blur');
+    document.getElementById('board').classList.add('blur');
+    document.getElementById('right-box').classList.add('blur');
+    document.getElementById('eval-bar').classList.add('blur');
+    isCalculating = true;
+
+    // First, gather all positions and their evaluations
+    chess.reset();
+    const gameMoves = moves.slice();
+    let positions = [];
+    
+    // Add initial position
+    const initialEval = await getStockfishEval(chess.fen());
+    positions.push({
+      fen: chess.fen(),
+      topLines: [{
+        id: 1,
+        evaluation: {
+          type: Math.abs(initialEval.evaluation) >= 1000 ? "mate" : "cp",
+          value: initialEval.evaluation
+        }
+      }]
+    });
+
+    // Add all subsequent positions
+    for (let i = 0; i < gameMoves.length; i++) {
+      document.getElementById('progress-bar').style.width = `${((i + 1) / gameMoves.length) * 100}%`;
+      
+      const move = gameMoves[i];
+      chess.move(move);
+      
+      // Special handling for checkmate position
+      if (chess.in_checkmate()) {
+        positions.push({
+          fen: chess.fen(),
+          move: {
+            uci: move.from + move.to + (move.promotion || '')
+          },
+          topLines: [{
+            id: 1,
+            evaluation: {
+              type: "mate",
+              value: 0
+            }
+          }],
+          classification: "best"
+        });
+        continue;
+      }
+      
+      const eval = await getStockfishEval(chess.fen());
+      positions.push({
+        fen: chess.fen(),
+        move: {
+          uci: move.from + move.to + (move.promotion || '')
+        },
+        topLines: [{
+          id: 1,
+          evaluation: {
+            type: Math.abs(eval.evaluation) >= 1000 ? "mate" : "cp",
+            value: eval.evaluation
+          }
+        }]
+      });
+    }
+
+    // Apply classifications
+    for (let i = 1; i < positions.length; i++) {
+      const position = positions[i];
+      const lastPosition = positions[i - 1];
+
+      // Skip if already classified (checkmate positions)
+      if (position.classification) continue;
+
+      // Get evaluations
+      const prevEval = lastPosition.topLines[0].evaluation;
+      const currentEval = position.topLines[0].evaluation;
+      
+      // Move color is based on whose move it was in the PREVIOUS position
+      const moveColor = lastPosition.fen.includes(" w ") ? "white" : "black";
+
+      // If in checkmate
+      if (!currentEval) {
+        const board = new Chess(position.fen);
+        if (board.in_checkmate()) {
+          position.classification = "best";
+          continue;
+        }
+      }
+
+      // Check for forced moves
+      const board = new Chess(lastPosition.fen);
+      if (board.moves().length <= 1) {
+        position.classification = "forced";
+        continue;
+      }
+
+      // Regular evaluation
+      const noMate = prevEval.type === "cp" && currentEval.type === "cp";
+      
+      // Calculate eval loss from proper perspective
+      const evalLoss = moveColor === "white" ? 
+        prevEval.value - currentEval.value : 
+        currentEval.value - prevEval.value;
+
+      if (noMate) {
+        // Apply classification thresholds
+        const centipawnClassifications = ["best", "excellent", "good", "inaccuracy", "mistake", "blunder"];
+        for (const classif of centipawnClassifications) {
+          if (evalLoss <= getEvaluationLossThreshold(classif, prevEval.value)) {
+            position.classification = classif;
+            break;
+          }
+        }
+      }
+      
+      // Handle mate positions exactly as in his code
+      else if (prevEval.type === "cp" && currentEval.type === "mate") {
+        const absoluteEval = moveColor === "white" ? currentEval.value : -currentEval.value;
+        if (absoluteEval > 0) {
+          position.classification = "best";
+        } else if (absoluteEval >= -2) {
+          position.classification = "blunder";
+        } else if (absoluteEval >= -5) {
+          position.classification = "mistake";
+        } else {
+          position.classification = "inaccuracy";
+        }
+      }
+      // If mate last move and there is no longer a mate
+      else if (prevEval.type === "mate" && currentEval.type === "cp") {
+        const absoluteEval = moveColor === "white" ? currentEval.value : -currentEval.value;
+        const prevAbsoluteEval = moveColor === "white" ? prevEval.value : -prevEval.value;
+        
+        if (prevAbsoluteEval < 0 && absoluteEval < 0) {
+          position.classification = "best";
+        } else if (absoluteEval >= 400) {
+          position.classification = "good";
+        } else if (absoluteEval >= 150) {
+          position.classification = "inaccuracy";
+        } else if (absoluteEval >= -100) {
+          position.classification = "mistake";
+        } else {
+          position.classification = "blunder";
+        }
+      }
+      // If mate last move and forced mate still exists
+      else if (prevEval.type === "mate" && currentEval.type === "mate") {
+        const absoluteEval = moveColor === "white" ? currentEval.value : -currentEval.value;
+        const prevAbsoluteEval = moveColor === "white" ? prevEval.value : -prevEval.value;
+        
+        if (prevAbsoluteEval > 0) {
+          if (absoluteEval <= -4) {
+            position.classification = "mistake";
+          } else if (absoluteEval < 0) {
+            position.classification = "blunder";
+          } else if (absoluteEval < prevAbsoluteEval) {
+            position.classification = "best";
+          } else if (absoluteEval <= prevAbsoluteEval + 2) {
+            position.classification = "excellent";
+          } else {
+            position.classification = "good";
+          }
+        } else {
+          if (absoluteEval === prevAbsoluteEval) {
+            position.classification = "best";
+          } else {
+            position.classification = "good";
+          }
+        }
+      }
+
+      position.classification ??= "book";
+    }
+
+    // Calculate accuracies
+    const accuracies = {
+      white: { current: 0, maximum: 0 },
+      black: { current: 0, maximum: 0 }
+    };
+
+    // Count accuracies based on previous position's turn
+    for (let i = 1; i < positions.length; i++) {
+      const position = positions[i];
+      const lastPosition = positions[i - 1];
+      const moveColor = lastPosition.fen.includes(" w ") ? "white" : "black";
+      accuracies[moveColor].current += classificationValues[position.classification];
+      accuracies[moveColor].maximum++;
+    }
+
+    // Calculate final accuracies
+    const whiteAccuracy = Math.round((accuracies.white.current / accuracies.white.maximum) * 100);
+    const blackAccuracy = Math.round((accuracies.black.current / accuracies.black.maximum) * 100);
+    
+    document.getElementById('accuracy-white').innerHTML = `${whiteAccuracy}%`;
+    document.getElementById('accuracy-black').innerHTML = `${blackAccuracy}%`;
+    
+  } catch (error) {
+    console.error("Error calculating accuracy:", error);
+    document.getElementById('accuracy-white').innerHTML = 'Error';
+    document.getElementById('accuracy-black').innerHTML = 'Error';
+  } finally {
+    isCalculating = false;
+    document.getElementById('calculation-overlay').style.display = 'none';
+    document.getElementById('left-box').classList.remove('blur');
+    document.getElementById('board').classList.remove('blur');
+    document.getElementById('right-box').classList.remove('blur');
+    document.getElementById('eval-bar').classList.remove('blur');
+  }
 }
 
   // ----------------------------------------------------------------------------------------------------------------------------
